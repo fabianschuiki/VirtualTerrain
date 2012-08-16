@@ -10,9 +10,11 @@
 class Framebuffer
 {
 public:
+	const GLint width;
+	const GLint height;
 	GLuint buffer;
 	
-	Framebuffer();
+	Framebuffer(GLint width, GLint height);
 	~Framebuffer();
 	
 	void bind();

@@ -6,7 +6,8 @@
 #include "Framebuffer.h"
 
 
-Framebuffer::Framebuffer()
+Framebuffer::Framebuffer(GLint width, GLint height)
+:   width(width), height(height)
 {
 	glGenFramebuffersEXT(1, &buffer);
 }
@@ -19,6 +20,7 @@ Framebuffer::~Framebuffer()
 void Framebuffer::bind()
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, buffer);
+	glViewport(0, 0, width, height);
 }
 
 void Framebuffer::unbind()

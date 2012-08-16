@@ -1,5 +1,5 @@
 varying vec3 V, N, L;
-const float shininess = 20.0;
+const float shininess = 10.0;
 
 void main() {
 	vec3 R = normalize(-reflect(L,N));
@@ -10,6 +10,6 @@ void main() {
 	
 	//calculate the final color
 	gl_FragColor = gl_Color;
-	gl_FragColor.xyz *= diffuse * 0.9 + 0.1;
-	gl_FragColor.xyz += specular * vec3(2);
+	gl_FragColor.xyz *= diffuse * 1.5 + 0.1;
+	gl_FragColor.xyz += specular * vec3(1);
 }
