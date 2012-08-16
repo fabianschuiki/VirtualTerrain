@@ -39,7 +39,7 @@ void Shader::compile()
 	f.seekg(0, std::ios::beg);
 	
 	if (source) delete source;
-	source = new GLchar[length];
+	source = new GLchar[length+1];
 	int i;
 	for (i = 0; f.good(); i++)
 		source[i] = f.get();

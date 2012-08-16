@@ -37,3 +37,8 @@ void ShaderProgram::use()
 {
 	glUseProgram(program);
 }
+
+GLint ShaderProgram::uniform(const char* name)
+{
+	return glGetUniformLocation(program, name);
+}

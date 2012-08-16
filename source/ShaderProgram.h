@@ -19,6 +19,8 @@ public:
 	void reload();
 	void use();
 	
+	GLint uniform(const char* name);
+	
 protected:
 	Shader vertexShader;
 	Shader fragmentShader;
