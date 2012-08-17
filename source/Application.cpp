@@ -8,6 +8,7 @@
 #include <SFML/OpenGL.hpp>
 
 #include "Application.h"
+#include "ElevationDataSlice.h"
 #include "Framebuffer.h"
 #include "ShaderProgram.h"
 #include "Texture.h"
@@ -37,7 +38,7 @@ static void glaux_fullQuad()
 int Application::run(int argc, char* argv[])
 {
 	sf::ContextSettings settings;
-	settings.depthBits = 24;
+	//settings.depthBits = 24;
 	
 	std::ofstream f("test.txt");
 	f.write("Hello", 6);
@@ -85,14 +86,34 @@ int Application::run(int argc, char* argv[])
 	}
 	
 	//Camera
-	float rotation = M_PI, inclination = M_PI / 8;
+	float rotation = 0, inclination = M_PI / 4;
 	float radius = 15;
+	
+	//Load some elevation data.
+	int centerx = 3425, centery = 5116;
+	//int centerx = 2400, centery = 3000;
+	int grid_size = 100;
+	float scale = 8 / (float)grid_size;
+	float elev_scale = 0.005 * scale;
+	short elev_off = 0;
+	ElevationDataSlice eds("data/W020N90.DEM");
+	eds.reload(0);
+	
+	std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();
 	float aspect = 1280.0 / 768;
 	int mouseX, mouseY;
 	bool mouseDown = false;
+	
+	enum {
+		kSceneMode = 0,
+		kBuffersMode,
+		kMaxMode
+	};
+	int displayMode = kSceneMode;
+	
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -111,6 +132,13 @@ int Application::run(int argc, char* argv[])
 						blur1Shader.reload();
 						toneMappingShader.reload();
 					} break;
+					case 'b': {
+						displayMode++;
+						if (displayMode >= kMaxMode)
+							displayMode = 0;
+					} break;
+					case '+': eds.reload(eds.resolution + 1); break;
+					case '-': eds.reload(eds.resolution - 1); break;
 				}
 			}
 			else if (event.type == sf::Event::KeyPressed) {
@@ -164,7 +192,7 @@ int Application::run(int argc, char* argv[])
 		glPopMatrix();
 		
 		normalsShader.use();
-		glPushMatrix();
+		/*glPushMatrix();
 		glColor3f(1, 0, 0);
 		gluSphere(quadric, 1, 18, 36);
 		
@@ -175,7 +203,54 @@ int Application::run(int argc, char* argv[])
 		glTranslatef(-4, 3, 0);
 		glColor3f(0, 1, 0);
 		gluSphere(quadric, 1, 18, 36);
-		glPopMatrix();
+		glPopMatrix();*/
+		
+		//Draw the ocean.
+		/*glColor3f(0, 0.5, 1);
+		glNormal3f(0, 1, 0);
+		glBegin(GL_QUADS);
+		glVertex3f(-grid_size*scale, 0, -grid_size*scale);
+		glVertex3f( grid_size*scale, 0, -grid_size*scale);
+		glVertex3f( grid_size*scale, 0,  grid_size*scale);
+		glVertex3f(-grid_size*scale, 0,  grid_size*scale);
+		glEnd();*/
+		
+		//Draw the elevation map.
+		glBegin(GL_QUADS);
+		for (int y = -grid_size; y <= grid_size; y++) {
+			for (int x = -grid_size; x < grid_size; x++) {
+				float x0 = (x+0) * scale;
+				float x1 = (x+1) * scale;
+				float y0 = (y+0) * scale;
+				float y1 = (y+1) * scale;
+				
+				int tx = x + (centerx >> eds.resolution);
+				int ty = y + (centery >> eds.resolution);
+				
+				float es = elev_scale / (1 << eds.resolution);
+				float elev00 = (eds.sample(tx+0, ty+0) - elev_off) * es;
+				float elev01 = (eds.sample(tx+0, ty+1) - elev_off) * es;
+				float elev10 = (eds.sample(tx+1, ty+0) - elev_off) * es;
+				float elev11 = (eds.sample(tx+1, ty+1) - elev_off) * es;
+				
+				float nx = (elev00 - elev10)*(y0-y1);
+				float ny = -(x0-x1)*(y0-y1);
+				float nz = (elev00 - elev01)*(x0-x1);
+				glNormal3f(-nx, -ny, -nz);
+				
+				if (elev00 == 0)
+					glColor3f(0, 0.5, 1);
+				else
+					glColor3f(0, 0.5, 0);
+				
+				glVertex3f(x0, elev00, y0);
+				glVertex3f(x1, elev10, y0);
+				glVertex3f(x1, elev11, y1);
+				glVertex3f(x0, elev01, y1);
+			}
+		}
+		glEnd();
+		
 		
 		
 		//Prepare for post effects.
@@ -186,7 +261,6 @@ int Application::run(int argc, char* argv[])
 		glLoadIdentity();
 		
 		glEnable(GL_TEXTURE_2D);
-		
 		
 		//Extract the overbright areas of the scene.
 		sceneColor.bind();
@@ -236,54 +310,70 @@ int Application::run(int argc, char* argv[])
 		glDepthMask(1);
 		
 		
-		//Draw the FBOs onto the screen.
+		//Final image.
 		glViewport(0, 0, window.getSize().x, window.getSize().y);
 		Framebuffer::unbind();
 		glUseProgram(0);
-		glClearColor(0, 0, 0.5, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		//-> color
-		sceneColor.bind();
-		toneMappingShader.use();
-		glUniform1f(toneMappingShader.uniform("tex"), 0);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 1); glVertex2f(-1, 1);
-		glTexCoord2f(1, 1); glVertex2f( 0, 1);
-		glTexCoord2f(1, 0); glVertex2f( 0, 0);
-		glTexCoord2f(0, 0); glVertex2f(-1, 0);
-		glEnd();
-		glUseProgram(0);
-		
-		//-> depth
-		sceneDepth.bind();
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 1); glVertex2f(0, 1);
-		glTexCoord2f(1, 1); glVertex2f(1, 1);
-		glTexCoord2f(1, 0); glVertex2f(1, 0);
-		glTexCoord2f(0, 0); glVertex2f(0, 0);
-		glEnd();
-		
-		//-> downsampled
-		for (int i = 0; i < NUM_DS; i++) {
-			float f = pow(2, -i);
-			downsampleColor[i][1]->bind();
-			glBegin(GL_QUADS);
-			glTexCoord2f(0, 1); glVertex2f(-1,  -1+f);
-			glTexCoord2f(1, 1); glVertex2f(f*0.5-1, -1+f);
-			glTexCoord2f(1, 0); glVertex2f(f*0.5-1, -1+f*0.5);
-			glTexCoord2f(0, 0); glVertex2f(-1,  -1+f*0.5);
-			glEnd();
+		switch (displayMode) {
+			case kSceneMode: {
+				sceneColor.bind();
+				toneMappingShader.use();
+				glUniform1f(toneMappingShader.uniform("tex"), 0);
+				glaux_fullQuad();
+				glUseProgram(0);
+			} break;
+				
+			case kBuffersMode: {
+				//Draw the FBOs onto the screen.
+				glClearColor(0, 0, 0.5, 1);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				
+				//-> color
+				sceneColor.bind();
+				toneMappingShader.use();
+				glUniform1f(toneMappingShader.uniform("tex"), 0);
+				glBegin(GL_QUADS);
+				glTexCoord2f(0, 1); glVertex2f(-1, 1);
+				glTexCoord2f(1, 1); glVertex2f( 0, 1);
+				glTexCoord2f(1, 0); glVertex2f( 0, 0);
+				glTexCoord2f(0, 0); glVertex2f(-1, 0);
+				glEnd();
+				glUseProgram(0);
+				
+				//-> depth
+				sceneDepth.bind();
+				glBegin(GL_QUADS);
+				glTexCoord2f(0, 1); glVertex2f(0, 1);
+				glTexCoord2f(1, 1); glVertex2f(1, 1);
+				glTexCoord2f(1, 0); glVertex2f(1, 0);
+				glTexCoord2f(0, 0); glVertex2f(0, 0);
+				glEnd();
+				
+				//-> downsampled
+				for (int i = 0; i < NUM_DS; i++) {
+					float f = pow(2, -i);
+					downsampleColor[i][1]->bind();
+					glBegin(GL_QUADS);
+					glTexCoord2f(0, 1); glVertex2f(-1,  -1+f);
+					glTexCoord2f(1, 1); glVertex2f(f*0.5-1, -1+f);
+					glTexCoord2f(1, 0); glVertex2f(f*0.5-1, -1+f*0.5);
+					glTexCoord2f(0, 0); glVertex2f(-1,  -1+f*0.5);
+					glEnd();
+				}
+				
+				//-> bloom overlay
+				downsampleColor[NUM_DS-1][1]->bind();
+				glBegin(GL_QUADS);
+				glTexCoord2f(0, 1); glVertex2f(0,  0);
+				glTexCoord2f(1, 1); glVertex2f(1,  0);
+				glTexCoord2f(1, 0); glVertex2f(1, -1);
+				glTexCoord2f(0, 0); glVertex2f(0, -1);
+				glEnd();
+			} break;
+				
+			default: break;
 		}
-		
-		//-> bloom overlay
-		downsampleColor[NUM_DS-1][1]->bind();
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 1); glVertex2f(0,  0);
-		glTexCoord2f(1, 1); glVertex2f(1,  0);
-		glTexCoord2f(1, 0); glVertex2f(1, -1);
-		glTexCoord2f(0, 0); glVertex2f(0, -1);
-		glEnd();
 		
 		window.display();
 	}
