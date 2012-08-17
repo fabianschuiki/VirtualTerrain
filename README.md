@@ -29,3 +29,13 @@ How To Give It A Try
 - Build the program through `$ make`
 - Make sure there is a symbolic link to `data` in the program's working directory. If not create one, e.g. `$ ln -s ../data`
 - Run the program `$ ./VirtualTerrain`
+
+### On Mac OS X
+
+- Create a `build` directory and switch into it
+- Run `$ cmake -G Xcode ..`
+- Resolve any errors (installing SFML and the like)
+- Open `VirtualTerrain.xcodeproj`
+- *Build* the project
+- Switch into the `build/Debug` folder and create a symbolic link to the `data` folder, e.g. `$ ln -s ../../data`
+- In Xcode, *run* the program
