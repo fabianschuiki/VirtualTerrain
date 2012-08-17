@@ -1,4 +1,4 @@
-const vec3 lightPos = vec3(5, 5, -5);
+const vec3 lightPos = vec3(5e7, 5e7, -5e7);
 varying vec3 V, N, L;
 
 void main()

@@ -10,6 +10,7 @@
 #include "Application.h"
 #include "ElevationDataSlice.h"
 #include "Framebuffer.h"
+#include "Planet.h"
 #include "ShaderProgram.h"
 #include "Texture.h"
 
@@ -34,15 +35,21 @@ static void glaux_fullQuad()
 	glEnd();
 }
 
+static void glVertex_vec3(const vec3 &v)
+{
+	glVertex3f(v.x, v.y, v.z);
+}
+
+static void glNormal_vec3(const vec3 &n)
+{
+	glNormal3f(n.x, n.y, n.z);
+}
+
 
 int Application::run(int argc, char* argv[])
 {
 	sf::ContextSettings settings;
 	//settings.depthBits = 24;
-	
-	std::ofstream f("test.txt");
-	f.write("Hello", 6);
-	f.close();
 	
 	//Setup the window.
 	window.create(sf::VideoMode(1280, 768), "VirtualTerrain", sf::Style::Default, settings);
@@ -85,9 +92,13 @@ int Application::run(int argc, char* argv[])
 		}
 	}
 	
+	
+	//Create the planet structure.
+	Planet planet;
+	
 	//Camera
 	float rotation = 0, inclination = M_PI / 4;
-	float radius = 15;
+	float radius = planet.radius * 5;
 	
 	//Load some elevation data.
 	int centerx = 3425, centery = 5116;
@@ -96,7 +107,7 @@ int Application::run(int argc, char* argv[])
 	float scale = 8 / (float)grid_size;
 	float elev_scale = 0.005 * scale;
 	short elev_off = 0;
-	ElevationDataSlice eds("data/W020N90.DEM");
+	ElevationDataSlice eds("/tmp/W020N90.DEM");
 	eds.reload(0);
 	
 	std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
@@ -152,7 +163,7 @@ int Application::run(int argc, char* argv[])
 				mouseDown = false;
 			}
 			else if (event.type == sf::Event::MouseWheelMoved) {
-				radius = std::max<float>(std::min<float>(radius + event.mouseWheel.delta*0.1, 50), 2);
+				radius = std::max<float>(std::min<float>(radius + event.mouseWheel.delta*planet.radius*0.01, planet.radius * 10), planet.radius * 1.25);
 			}
 		}
 		if (mouseDown) {
@@ -175,23 +186,48 @@ int Application::run(int argc, char* argv[])
 		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(45, aspect, 1, 100);
+		gluPerspective(45, aspect, 0.1*radius, 10*radius);
 		
 		
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		gluLookAt(radius * sin(rotation) * cos(inclination),
-				  radius * sin(inclination),
-				  radius * cos(rotation) * cos(inclination),  0, 0, 0,  0, 1, 0);
+		vec3 eye(radius * sin(rotation) * cos(inclination),
+				 radius * sin(inclination),
+				 radius * cos(rotation) * cos(inclination));
+		gluLookAt(eye.x,
+				  eye.y,
+				  eye.z,  0, 0, 0,  0, 1, 0);
+		planet.updateEye(eye);
 		
 		glUseProgram(0);
 		glPushMatrix();
-		glTranslatef(5, 5, -5);
+		glTranslatef(8e6, 8e6, -8e6);
 		glColor3f(1, 1, 0);
-		gluSphere(quadric, 0.2, 4, 8);
+		gluSphere(quadric, 1e6, 4, 8);
 		glPopMatrix();
 		
 		normalsShader.use();
+		
+		/*glColor3f(0, 0.5, 1);
+		gluSphere(quadric, 6.371e0, 18, 36);*/
+		
+		//Draw the planet.
+		glBegin(GL_QUADS);
+		for (int y = 0; y < 18; y++) {
+			for (int x = 0; x < 36; x++) {
+				DecadePatch &p = planet.patches[x][y];
+				if (p.angularQuality < 0)
+					continue;
+				
+				glColor3f(1 - p.angularQuality, p.angularQuality, 0);
+				glNormal_vec3(p.getVertexNormal(0, 0)); glVertex_vec3(p.getVertex(0, 0, planet.radius));
+				glNormal_vec3(p.getVertexNormal(1, 0)); glVertex_vec3(p.getVertex(1, 0, planet.radius));
+				glNormal_vec3(p.getVertexNormal(1, 1)); glVertex_vec3(p.getVertex(1, 1, planet.radius));
+				glNormal_vec3(p.getVertexNormal(0, 1)); glVertex_vec3(p.getVertex(0, 1, planet.radius));
+			}
+		}
+		glEnd();
+		
 		/*glPushMatrix();
 		glColor3f(1, 0, 0);
 		gluSphere(quadric, 1, 18, 36);
@@ -216,7 +252,7 @@ int Application::run(int argc, char* argv[])
 		glEnd();*/
 		
 		//Draw the elevation map.
-		glBegin(GL_QUADS);
+		/*glBegin(GL_QUADS);
 		for (int y = -grid_size; y <= grid_size; y++) {
 			for (int x = -grid_size; x < grid_size; x++) {
 				float x0 = (x+0) * scale;
@@ -249,7 +285,7 @@ int Application::run(int argc, char* argv[])
 				glVertex3f(x0, elev01, y1);
 			}
 		}
-		glEnd();
+		glEnd();*/
 		
 		
 		
