@@ -14,6 +14,7 @@ Planet::Planet() : radius(6.371e6)
 			p.x = x*10;
 			p.y = y*10;
 			p.normal = p.getVertexNormal(0.5, 0.5);
+			p.updateBuffers();
 		}
 	}
 }

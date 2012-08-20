@@ -124,6 +124,7 @@ int Application::run(int argc, char* argv[])
 		kMaxMode
 	};
 	int displayMode = kSceneMode;
+	bool wireframe = false;
 	
 	while (window.isOpen())
 	{
@@ -150,6 +151,7 @@ int Application::run(int argc, char* argv[])
 					} break;
 					case '+': eds.reload(eds.resolution + 1); break;
 					case '-': eds.reload(eds.resolution - 1); break;
+					case 'w': wireframe = !wireframe; break;
 				}
 			}
 			else if (event.type == sf::Event::KeyPressed) {
@@ -183,6 +185,7 @@ int Application::run(int argc, char* argv[])
 		glDisable(GL_TEXTURE_2D);
 		glClearColor(0.2, 0.2, 0.2, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -212,7 +215,7 @@ int Application::run(int argc, char* argv[])
 		gluSphere(quadric, 6.371e0, 18, 36);*/
 		
 		//Draw the planet.
-		glBegin(GL_QUADS);
+		//glBegin(GL_QUADS);
 		for (int y = 0; y < 18; y++) {
 			for (int x = 0; x < 36; x++) {
 				DecadePatch &p = planet.patches[x][y];
@@ -220,13 +223,14 @@ int Application::run(int argc, char* argv[])
 					continue;
 				
 				glColor3f(1 - p.angularQuality, p.angularQuality, 0);
-				glNormal_vec3(p.getVertexNormal(0, 0)); glVertex_vec3(p.getVertex(0, 0, planet.radius));
+				/*glNormal_vec3(p.getVertexNormal(0, 0)); glVertex_vec3(p.getVertex(0, 0, planet.radius));
 				glNormal_vec3(p.getVertexNormal(1, 0)); glVertex_vec3(p.getVertex(1, 0, planet.radius));
 				glNormal_vec3(p.getVertexNormal(1, 1)); glVertex_vec3(p.getVertex(1, 1, planet.radius));
-				glNormal_vec3(p.getVertexNormal(0, 1)); glVertex_vec3(p.getVertex(0, 1, planet.radius));
+				glNormal_vec3(p.getVertexNormal(0, 1)); glVertex_vec3(p.getVertex(0, 1, planet.radius));*/
+				p.draw();
 			}
 		}
-		glEnd();
+		//glEnd();
 		
 		/*glPushMatrix();
 		glColor3f(1, 0, 0);
@@ -287,6 +291,7 @@ int Application::run(int argc, char* argv[])
 		}
 		glEnd();*/
 		
+		if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		
 		//Prepare for post effects.

@@ -4,12 +4,13 @@
 
 #pragma once
 
+#include "Patch.h"
 #include "Vector.h"
 
 
 class Planet;
 
-class DecadePatch
+class DecadePatch : Patch
 {
 public:
 	Planet *planet;
@@ -20,4 +21,7 @@ public:
 	
 	vec3 getVertex(float x, float y, float z);
 	vec3 getVertexNormal(float x, float y);
+	
+	void updateBuffers();
+	void draw();
 };
