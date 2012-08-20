@@ -66,8 +66,8 @@ short ElevationDataSlice::sample(int x, int y)
 	if (!data)
 		return 0;
 	
-	int tx = x/* >> resolution*/;
-	int ty = y/* >> resolution*/;
+	int tx = x >> resolution;
+	int ty = y >> resolution;
 	
 	if (tx < 0) return 0;
 	if (tx >= 4800 >> resolution) return 0;

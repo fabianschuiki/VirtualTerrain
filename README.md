@@ -22,6 +22,7 @@ Planned Things
 
 How To Give It A Try
 --------------------
+You might want to fetch the elevation data from [http://dds.cr.usgs.gov/srtm/version2_1/SRTM30/].
 
 - Create a `build` directory and switch into it
 - Run `$ cmake ..`
