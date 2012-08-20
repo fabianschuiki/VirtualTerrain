@@ -50,9 +50,5 @@ float ElevationData::sample(float x, float y)
 	int ix = dx * 4800 / 40;
 	int iy = (50-dy) * 6000 / 50;
 	
-	short e = slices[sx][sy]->sample(ix, iy);
-	//std::cout << x << "x" << y << " -> " << sx << "," << sy << "; " << dx << "," << dy << "; " << ix << "," << iy << "  = " << e << std::endl;
-	
-	if (e == 0) return -1e6;
-	return e * 1e2;
+	return slices[sx][sy]->sample(ix, iy);
 }

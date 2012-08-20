@@ -72,8 +72,10 @@ int Application::run(int argc, char* argv[])
 	
 	//Initialize the scene framebuffer.
 	Framebuffer sceneFBO(window.getSize().x, window.getSize().y);
-	Texture sceneColor(window.getSize().x, window.getSize().y, GL_RGBA16F_ARB, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	Texture sceneDepth(window.getSize().x, window.getSize().y, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	Texture sceneColor;
+	sceneColor.loadImage(window.getSize().x, window.getSize().y, GL_RGBA16F_ARB, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	Texture sceneDepth;
+	sceneDepth.loadImage(window.getSize().x, window.getSize().y, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	sceneFBO.attachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, sceneColor.texture);
 	sceneFBO.attachTexture(GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, sceneDepth.texture);
 	sceneFBO.validate();
@@ -85,7 +87,8 @@ int Application::run(int argc, char* argv[])
 		GLint w = window.getSize().x >> (i+1);
 		GLint h = window.getSize().y >> (i+1);
 		for (int n = 0; n < 2; n++) {
-			downsampleColor[i][n] = new Texture(w, h, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			downsampleColor[i][n] = new Texture;
+			downsampleColor[i][n]->loadImage(w, h, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 			downsampleFBO[i][n] = new Framebuffer(w, h);
 			downsampleFBO[i][n]->attachTexture(GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, downsampleColor[i][n]->texture);
 			downsampleFBO[i][n]->validate();
@@ -99,6 +102,10 @@ int Application::run(int argc, char* argv[])
 	//Camera
 	float rotation = 0, inclination = M_PI / 4;
 	float radius = planet.radius * 5;
+	
+	//Light
+	float light_rotation = 0, light_inclination = M_PI / 4;
+	float light_radius = 1e7;
 	
 	//Load some elevation data.
 	int centerx = 3425, centery = 5116;
@@ -117,6 +124,7 @@ int Application::run(int argc, char* argv[])
 	float aspect = 1280.0 / 768;
 	int mouseX, mouseY;
 	bool mouseDown = false;
+	bool dragLight = false;
 	
 	enum {
 		kSceneMode = 0,
@@ -160,6 +168,7 @@ int Application::run(int argc, char* argv[])
 				mouseX = event.mouseButton.x;
 				mouseY = event.mouseButton.y;
 				mouseDown = true;
+				dragLight = event.mouseButton.button == sf::Mouse::Right;
 			}
 			else if (event.type == sf::Event::MouseButtonReleased) {
 				mouseDown = false;
@@ -170,8 +179,13 @@ int Application::run(int argc, char* argv[])
 		}
 		if (mouseDown) {
 			sf::Vector2i v = sf::Mouse::getPosition(window);
-			rotation    += (v.x - mouseX) * 0.005;
-			inclination = std::max<float>(std::min<float>(inclination + (v.y - mouseY) * 0.005, M_PI/2*0.99), -M_PI/2*0.99);
+			if (dragLight) {
+				light_rotation    += (v.x - mouseX) * 0.005;
+				light_inclination = std::max<float>(std::min<float>(light_inclination - (v.y - mouseY) * 0.005, M_PI/2*0.99), -M_PI/2*0.99);
+			} else {
+				rotation    -= (v.x - mouseX) * 0.005;
+				inclination = std::max<float>(std::min<float>(inclination + (v.y - mouseY) * 0.005, M_PI/2*0.99), -M_PI/2*0.99);
+			}
 			mouseX = v.x;
 			mouseY = v.y;
 		}
@@ -202,20 +216,23 @@ int Application::run(int argc, char* argv[])
 				  eye.z,  0, 0, 0,  0, 1, 0);
 		planet.updateEye(eye);
 		
+		vec3 light(light_radius * sin(light_rotation) * cos(light_inclination),
+				   light_radius * sin(light_inclination),
+				   light_radius * cos(light_rotation) * cos(light_inclination));
+		
 		glUseProgram(0);
 		glPushMatrix();
-		glTranslatef(8e6, 8e6, -8e6);
+		glTranslatef(light.x, light.y, light.z);
 		glColor3f(1, 1, 0);
 		gluSphere(quadric, 1e6, 4, 8);
 		glPopMatrix();
 		
+		glEnable(GL_TEXTURE_2D);
 		normalsShader.use();
-		
-		/*glColor3f(0, 0.5, 1);
-		gluSphere(quadric, 6.371e0, 18, 36);*/
+		glUniform1i(normalsShader.uniform("tex"), 0);
+		glUniform3f(normalsShader.uniform("lightPos"), light.x, light.y, light.z);
 		
 		//Draw the planet.
-		//glBegin(GL_QUADS);
 		for (int y = 0; y < 18; y++) {
 			for (int x = 0; x < 36; x++) {
 				DecadePatch &p = planet.patches[x][y];
@@ -223,73 +240,9 @@ int Application::run(int argc, char* argv[])
 					continue;
 				
 				glColor3f(1 - p.angularQuality, p.angularQuality, 0);
-				/*glNormal_vec3(p.getVertexNormal(0, 0)); glVertex_vec3(p.getVertex(0, 0, planet.radius));
-				glNormal_vec3(p.getVertexNormal(1, 0)); glVertex_vec3(p.getVertex(1, 0, planet.radius));
-				glNormal_vec3(p.getVertexNormal(1, 1)); glVertex_vec3(p.getVertex(1, 1, planet.radius));
-				glNormal_vec3(p.getVertexNormal(0, 1)); glVertex_vec3(p.getVertex(0, 1, planet.radius));*/
 				p.draw();
 			}
 		}
-		//glEnd();
-		
-		/*glPushMatrix();
-		glColor3f(1, 0, 0);
-		gluSphere(quadric, 1, 18, 36);
-		
-		glTranslatef(4, 0, 0);
-		glColor3f(0, 1, 0);
-		gluSphere(quadric, 1, 18, 36);
-		
-		glTranslatef(-4, 3, 0);
-		glColor3f(0, 1, 0);
-		gluSphere(quadric, 1, 18, 36);
-		glPopMatrix();*/
-		
-		//Draw the ocean.
-		/*glColor3f(0, 0.5, 1);
-		glNormal3f(0, 1, 0);
-		glBegin(GL_QUADS);
-		glVertex3f(-grid_size*scale, 0, -grid_size*scale);
-		glVertex3f( grid_size*scale, 0, -grid_size*scale);
-		glVertex3f( grid_size*scale, 0,  grid_size*scale);
-		glVertex3f(-grid_size*scale, 0,  grid_size*scale);
-		glEnd();*/
-		
-		//Draw the elevation map.
-		/*glBegin(GL_QUADS);
-		for (int y = -grid_size; y <= grid_size; y++) {
-			for (int x = -grid_size; x < grid_size; x++) {
-				float x0 = (x+0) * scale;
-				float x1 = (x+1) * scale;
-				float y0 = (y+0) * scale;
-				float y1 = (y+1) * scale;
-				
-				int tx = x + (centerx >> eds.resolution);
-				int ty = y + (centery >> eds.resolution);
-				
-				float es = elev_scale / (1 << eds.resolution);
-				float elev00 = (eds.sample(tx+0, ty+0) - elev_off) * es;
-				float elev01 = (eds.sample(tx+0, ty+1) - elev_off) * es;
-				float elev10 = (eds.sample(tx+1, ty+0) - elev_off) * es;
-				float elev11 = (eds.sample(tx+1, ty+1) - elev_off) * es;
-				
-				float nx = (elev00 - elev10)*(y0-y1);
-				float ny = -(x0-x1)*(y0-y1);
-				float nz = (elev00 - elev01)*(x0-x1);
-				glNormal3f(-nx, -ny, -nz);
-				
-				if (elev00 == 0)
-					glColor3f(0, 0.5, 1);
-				else
-					glColor3f(0, 0.5, 0);
-				
-				glVertex3f(x0, elev00, y0);
-				glVertex3f(x1, elev10, y0);
-				glVertex3f(x1, elev11, y1);
-				glVertex3f(x0, elev01, y1);
-			}
-		}
-		glEnd();*/
 		
 		if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
@@ -316,8 +269,9 @@ int Application::run(int argc, char* argv[])
 		glEnd();
 		
 		//Downsample and bloom the overbright areas.
-		glUseProgram(0);
+		blur0Shader.use();
 		glUniform1i(blur0Shader.uniform("tex"), 0);
+		blur1Shader.use();
 		glUniform1i(blur1Shader.uniform("tex"), 0);
 		for (int i = 0; i < NUM_DS; i++) {
 			for (int n = 0; n < NUM_DS_IT; n++) {
@@ -360,7 +314,7 @@ int Application::run(int argc, char* argv[])
 			case kSceneMode: {
 				sceneColor.bind();
 				toneMappingShader.use();
-				glUniform1f(toneMappingShader.uniform("tex"), 0);
+				glUniform1i(toneMappingShader.uniform("tex"), 0);
 				glaux_fullQuad();
 				glUseProgram(0);
 			} break;
@@ -416,6 +370,7 @@ int Application::run(int argc, char* argv[])
 			default: break;
 		}
 		
+		glaux_dumpError();
 		window.display();
 	}
 	

@@ -1,4 +1,4 @@
-const vec3 lightPos = vec3(5e7, 5e7, -5e7);
+uniform vec3 lightPos;
 varying vec3 V, N, L;
 
 void main()
@@ -13,4 +13,5 @@ void main()
 	//bypass
 	gl_FrontColor = gl_Color;
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_TexCoord[0] = gl_MultiTexCoord0;
 }

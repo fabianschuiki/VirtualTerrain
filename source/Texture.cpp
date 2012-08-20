@@ -8,21 +8,10 @@
 #include "Texture.h"
 
 
-Texture::Texture(GLint width, GLint height, GLenum internalFormat, GLenum format, GLenum type, const void *data)
+Texture::Texture()
 {
-	this->width = width;
-	this->height = height;
-	this->internalFormat = internalFormat;
-	this->format = format;
-	
-	glGetError();
 	glGenTextures(1, &texture);
-	glBindTexture(TARGET, texture);
-	glTexImage2D(TARGET, 0, internalFormat, width, height, 0, format, type, data);
-	GLenum err = glGetError();
-	if (err != GL_NO_ERROR)
-		std::cerr << "unable to create texture " << width << "x" << height << " (internal " << (int)internalFormat << ", format " << (int)format << "), error " << (int)err << std::endl;
-	
+	bind();
 	glTexParameterf(TARGET, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(TARGET, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(TARGET, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -42,4 +31,18 @@ void Texture::bind()
 void Texture::unbind()
 {
 	glBindTexture(TARGET, 0);
+}
+
+void Texture::loadImage(GLint width, GLint height, GLenum internalFormat, GLenum format, GLenum type, const void *data)
+{
+	this->width = width;
+	this->height = height;
+	this->internalFormat = internalFormat;
+	this->format = format;
+	
+	bind();
+	glTexImage2D(TARGET, 0, internalFormat, width, height, 0, format, type, data);
+	GLenum err = glGetError();
+	if (err != GL_NO_ERROR)
+		std::cerr << "unable to create texture " << width << "x" << height << " (internal " << (int)internalFormat << ", format " << (int)format << "), error " << (int)err << std::endl;
 }
