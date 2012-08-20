@@ -15,8 +15,7 @@ Planet::Planet() : radius(6.371e6)
 			p.y = y*10;
 			p.normal = p.getVertexNormal(0.5, 0.5);
 			p.updateBuffers();
-			if (y >= 4 && y <= 5 && x >= 0 && x <= 1)
-				p.updateNormalMap();
+			p.updateNormalMap();
 		}
 	}
 }

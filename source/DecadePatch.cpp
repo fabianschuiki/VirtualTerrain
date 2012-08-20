@@ -90,21 +90,9 @@ void DecadePatch::updateNormalMap()
 			float dx = this->x + fx * 10;
 			float dy = this->y + fy * 10;
 			
-			vec3 vn, p;
+			/*vec3 vn, p;
 			p = getVertex(fx, fy, planet->elevation.sample(dx, dy) * 100 + planet->radius);
 			
-			/*for (int jx = 0; jx < 2; jx++) {
-				for (int jy = 0; jy < 2; jy++) {
-					float fjx = (float)(jx-1) / dim;
-					float fjy = (float)(jy-1) / dim;
-					vec3 px = getVertex(fx+fjx, fy, planet->elevation.sample(dx + fjx*10, dy)) - p;
-					vec3 py = getVertex(fx, fy+fjy, planet->elevation.sample(dx, dy + fjy*10)) - p;
-					vec3 vnt = px.cross(py);
-					vnt.normalize();
-					vn += vnt;
-				}
-			}
-			vn.normalize();*/
 			
 			vec3 px = getVertex(fx + 10.0/dim, fy, planet->elevation.sample(dx+1.0/dim,dy) * 100 + planet->radius) - p;
 			vec3 py = getVertex(fx, fy + 10.0/dim, planet->elevation.sample(dx,dy+1.0/dim) * 100 + planet->radius) - p;
@@ -113,13 +101,13 @@ void DecadePatch::updateNormalMap()
 			
 			n[y][x][0] = 255 * (0.5 + vn.x/2);
 			n[y][x][1] = 255 * (0.5 + vn.y/2);
-			n[y][x][2] = 255 * (0.5 + vn.z/2);
+			n[y][x][2] = 255 * (0.5 + vn.z/2);*/
 			
-			/*float f = planet->elevation.sample(dx,dy) / 4000;
+			float f = planet->elevation.sample(dx,dy) / 4000;
 			
 			n[y][x][0] = (x == 0 || y == 0 || x == dim-1 || y == dim-1 ? 255 : 0);
-			n[y][x][1] = f*255;
-			n[y][x][2] = (f == 0 ? 255 : 0);*/
+			n[y][x][1] = 255 - f*255;
+			n[y][x][2] = (f == 0 ? 255 : 0);
 		}
 	}
 	
