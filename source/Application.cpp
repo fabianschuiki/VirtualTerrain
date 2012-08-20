@@ -105,7 +105,7 @@ int Application::run(int argc, char* argv[])
 	
 	//Light
 	float light_rotation = 0, light_inclination = M_PI / 4;
-	float light_radius = 1e7;
+	float light_radius = 1e8;
 	
 	//Load some elevation data.
 	int centerx = 3425, centery = 5116;
@@ -191,8 +191,8 @@ int Application::run(int argc, char* argv[])
 		}
 		
 		//Measure time.
-		float dt = clock.getElapsedTime().asSeconds();
-		clock.restart();
+		/*float dt = clock.getElapsedTime().asSeconds();
+		clock.restart();*/
 		
 		//Draw the scene into the FBO.
 		sceneFBO.bind();
@@ -233,7 +233,7 @@ int Application::run(int argc, char* argv[])
 		glUniform3f(normalsShader.uniform("lightPos"), light.x, light.y, light.z);
 		
 		//Draw the planet.
-		for (int y = 0; y < 18; y++) {
+		/*for (int y = 0; y < 18; y++) {
 			for (int x = 0; x < 36; x++) {
 				DecadePatch &p = planet.patches[x][y];
 				if (p.angularQuality < 0)
@@ -242,7 +242,8 @@ int Application::run(int argc, char* argv[])
 				glColor3f(1 - p.angularQuality, p.angularQuality, 0);
 				p.draw();
 			}
-		}
+		}*/
+		planet.draw();
 		
 		if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		

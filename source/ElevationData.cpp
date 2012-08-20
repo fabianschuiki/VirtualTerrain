@@ -21,7 +21,7 @@ ElevationData::ElevationData()
 					 (sy < 0 ? 'S' : 'N'), abs(sy));
 			
 			ElevationDataSlice *s = new ElevationDataSlice(name);
-			s->reload(0);
+			//s->reload(0);
 			slices[x][y] = s;
 		}
 	}

@@ -10,7 +10,7 @@ void main() {
 	float specular = pow(max(0.0, dot(N,R)), shininess);
 	
 	//calculate the final color
-	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
+	gl_FragColor = /*texture2D(tex, gl_TexCoord[0].st)*/ gl_Color;
 	gl_FragColor.xyz *= diffuse * 0.7 + 0.3;
 	gl_FragColor.xyz += specular * vec3(0.5);
 }
