@@ -5,6 +5,7 @@
 #include <iostream>
 #include <SFML/OpenGL.hpp>
 
+#include "ElevationProvider.h"
 #include "Planet.h"
 #include "SphericalChunk.h"
 
@@ -35,7 +36,7 @@ void SphericalChunk::init()
 	pc = (p0+p1)/2;
 	tc = (t0+t1)/2;
 	
-	std::cout << "initialized node [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "]" << std::endl;
+	//std::cout << "initialized node [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "]" << std::endl;
 	
 	/*corners[0] = getNormal(1,0);
 	corners[1] = getNormal(0,0);
@@ -142,7 +143,7 @@ void SphericalChunk::draw()
 
 vec3 SphericalChunk::getVertex(float x, float y)
 {
-	return getNormal(x, y) * planet->radius;
+	return getNormal(x, y) * (planet->radius + planet->elevation->getElevation(p0 + (p1-p0)*x, t0 + (t1-t0)*y));
 }
 
 vec3 SphericalChunk::getNormal(float x, float y)
@@ -175,9 +176,52 @@ void SphericalChunk::activateChild(int child)
 	c->init();
 	
 	//Activate the required sides.
-	activeSides[child] = true;
-	activeSides[child > 0 ? child-1 : 3] = true;
+	int sideA = child;
+	int sideB = (child > 0 ? child-1 : 3);
+	activeSides[sideA] = true;
+	activeSides[sideB] = true;
 	
-	//Activate the adjacent node.
-	//...todo...
+	//Activate the adjacent node's side on side A and side B.
+	findAdjacentChunk(sideA)->activeSides[(sideA+2) % 4] = true;
+	findAdjacentChunk(sideB)->activeSides[(sideB+2) % 4] = true;
+}
+
+SphericalChunk* SphericalChunk::findAdjacentChunk(int side)
+{
+	//Calculate the center of the adjacent chunk.
+	double w = p1-p0;
+	double h = t1-t0;
+	double pa = pc, ta = tc;
+	if (side == 0) ta += h;
+	if (side == 1) pa -= w;
+	if (side == 2) ta -= h;
+	if (side == 3) pa += w;
+	
+	//Clamp the center coordinates to a sphere.
+	if (pa >  180) pa -= 360;
+	if (pa < -180) pa += 360;
+	if (ta >  90) ta -= 180;
+	if (ta < -90) ta += 180;
+	
+	//Move up to the root node.
+	SphericalChunk *root = NULL;
+	for (root = this; root->parent; root = root->parent);
+	if (!root) return NULL;
+	
+	//Perform a dual binary search down to our level.
+	SphericalChunk *chunk = root;
+	while (chunk->level < level) {
+		bool l = pa < chunk->pc;
+		bool b = ta < chunk->tc;
+		int child = (l ? (b ? 2 : 1) : (b ? 3 : 0));
+		
+		//Create the child if required.
+		if (!chunk->children[child])
+			chunk->activateChild(child);
+		
+		//Step down.
+		chunk = chunk->children[child];
+	}
+	
+	return chunk;
 }

@@ -38,4 +38,5 @@ public:
 	vec3 getNormal(float x, float y);
 	
 	void activateChild(int child);
+	SphericalChunk* findAdjacentChunk(int side);
 };

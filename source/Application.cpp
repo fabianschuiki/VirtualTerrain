@@ -187,6 +187,10 @@ int Application::run(int argc, char* argv[])
 					case '7': chk->activateChild(1); break;
 					case '3': chk->activateChild(2); break;
 					case '6': chk->activateChild(3); break;
+					case '-': chk = chk->findAdjacentChunk(0); break;
+					case '=': chk = chk->findAdjacentChunk(1); break;
+					case '+': chk = chk->findAdjacentChunk(2); break;
+					case '/': chk = chk->findAdjacentChunk(3); break;
 				}
 			}
 			else if (event.type == sf::Event::KeyPressed) {
