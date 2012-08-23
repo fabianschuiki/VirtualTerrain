@@ -18,6 +18,7 @@ SphericalChunk::SphericalChunk()
 	
 	parent = NULL;
 	level = 0;
+	highlighted = false;
 }
 
 SphericalChunk::~SphericalChunk()
@@ -73,7 +74,17 @@ void SphericalChunk::draw()
 {
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
-		glColor3f(1, 1, 1);
+		bool hl = false;
+		for (SphericalChunk *c = this; c; c = c->parent) {
+			if (c->highlighted) {
+				hl = true;
+				break;
+			}
+		}
+		if (hl)
+			glColor3f(0, 0.5, 1);
+		else
+			glColor3f(1, 1, 1);
 		glBegin(GL_TRIANGLE_FAN);
 		
 		vec3 center   = getVertex(0.5, 0.5);

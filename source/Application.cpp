@@ -138,8 +138,13 @@ int Application::run(int argc, char* argv[])
 	int displayMode = kSceneMode;
 	bool wireframe = false;
 	
+	SphericalChunk *chk = &planet.rootChunk;
+	chk->highlighted = true;
+	
 	while (window.isOpen())
 	{
+		SphericalChunk *prev_chk = chk;
+		
 		float radius = cam.pos.length();
 		vec3 cam_dir = cam.at - cam.pos;
 		cam_dir.normalize();
@@ -172,6 +177,16 @@ int Application::run(int argc, char* argv[])
 					case 'd': cam_roll -= 0.05; break;
 					case 'w': cam.pos += cam_dir * (radius - planet.radius + 1) * 0.1; break;
 					case 's': cam.pos -= cam_dir * (radius - planet.radius + 1) * 0.1; break;
+						
+					case '0': if (chk->parent) chk = chk->parent; break;
+					case '5': if (chk->children[0]) chk = chk->children[0]; break;
+					case '4': if (chk->children[1]) chk = chk->children[1]; break;
+					case '1': if (chk->children[2]) chk = chk->children[2]; break;
+					case '2': if (chk->children[3]) chk = chk->children[3]; break;
+					case '8': chk->activateChild(0); break;
+					case '7': chk->activateChild(1); break;
+					case '3': chk->activateChild(2); break;
+					case '6': chk->activateChild(3); break;
 				}
 			}
 			else if (event.type == sf::Event::KeyPressed) {
@@ -200,6 +215,11 @@ int Application::run(int argc, char* argv[])
 			}
 			mouseX = v.x;
 			mouseY = v.y;
+		}
+		
+		if (chk != prev_chk) {
+			prev_chk->highlighted = false;
+			chk->highlighted = true;
 		}
 		
 		//Measure time.

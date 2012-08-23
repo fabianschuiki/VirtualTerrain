@@ -26,6 +26,7 @@ public:
 	SphericalChunk *children[4];
 	bool activeSides[4];
 	int level;
+	bool highlighted;
 	
 	SphericalChunk();
 	~SphericalChunk();
