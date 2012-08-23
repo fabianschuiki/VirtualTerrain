@@ -9,7 +9,7 @@
 
 #include "Application.h"
 #include "Camera.h"
-#include "ElevationDataSlice.h"
+//#include "ElevationDataSlice.h"
 #include "Framebuffer.h"
 #include "Planet.h"
 #include "ShaderProgram.h"
@@ -118,10 +118,10 @@ int Application::run(int argc, char* argv[])
 	float scale = 8 / (float)grid_size;
 	float elev_scale = 0.005 * scale;
 	short elev_off = 0;
-	ElevationDataSlice eds("/tmp/W020N90.DEM");
-	eds.reload(0);
+	//ElevationDataSlice eds("/tmp/W020N90.DEM");
+	//eds.reload(0);
 	
-	std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
+	//std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();
@@ -165,8 +165,8 @@ int Application::run(int argc, char* argv[])
 						if (displayMode >= kMaxMode)
 							displayMode = 0;
 					} break;
-					case '+': eds.reload(eds.resolution + 1); break;
-					case '-': eds.reload(eds.resolution - 1); break;
+					//case '+': eds.reload(eds.resolution + 1); break;
+					//case '-': eds.reload(eds.resolution - 1); break;
 					case ' ': wireframe = !wireframe; break;
 					case 'a': cam_roll += 0.05; break;
 					case 'd': cam_roll -= 0.05; break;

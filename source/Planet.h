@@ -5,16 +5,17 @@
 #pragma once
 
 #include "SphericalChunk.h"
-#include "ElevationData.h"
+
+class ElevationProvider;
 
 
 class Planet
 {
 public:
-	const float radius;
+	const double radius;
 	vec3 eye;
-	SphericalChunk chunks[36][18];
-	ElevationData elevation;
+	SphericalChunk rootChunk;
+	ElevationProvider *elevation;
 	
 	Planet();
 	~Planet();

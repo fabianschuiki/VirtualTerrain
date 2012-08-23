@@ -53,7 +53,7 @@ public:
 	
 	//CVector-CVector
 	Vector<T>& operator+= (Vector<T> v)	{ x += v.x; y += v.y; z += v.z; return *this; }
-	Vector<T>& operator-= (Vector<T> v)	{ x -= v.x; y -= v.y; z -= v.z; return *this;	}
+	Vector<T>& operator-= (Vector<T> v)	{ x -= v.x; y -= v.y; z -= v.z; return *this; }
 	Vector<T>& operator*= (Vector<T> v)	{ x *= v.x; y *= v.y; z *= v.z; return *this; }
 	Vector<T>& operator/= (Vector<T> v)	{ x /= v.x; y /= v.y; z /= v.z; return *this; }
 	
@@ -64,12 +64,10 @@ public:
 	Vector<T>& operator/= (T v)	{ x /= v; y /= v; z /= v; return *this; }
 	
 	//Operations
-	inline T length()
-	{
-		return sqrt(x*x + y*y + z*z);
-	}
+	inline T length2() { return x*x + y*y + z*z; }
+	inline T length()  { return sqrt(length2()); }
 	
-	void normalize()
+	inline void normalize()
 	{
 		T length = this->length();
 		
@@ -77,6 +75,7 @@ public:
 		y /= length;
 		z /= length;
 	}
+	inline Vector<T> unit() { Vector<T> v(*this); v.normalize(); return v; }
 	
 	inline T dot(Vector<T> v)
 	{
@@ -87,14 +86,7 @@ public:
 	{
 		return Vector<T>(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);
 	}
-	
-	//Description
-	std::string toString() {
-		std::stringstream s(std::stringstream::out);
-		s << "{" << x << ", " << y << ", " << z << "}";
-		return s.str();
-	}
 };
 
 typedef Vector<int> ivec3;
-typedef Vector<float> vec3;
+typedef Vector<double> vec3;

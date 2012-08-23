@@ -4,23 +4,26 @@
 
 #pragma once
 
-#include "Chunk.h"
+#include "Vector.h"
+
+class Planet;
 
 
-class SphericalChunk : public Chunk
+class SphericalChunk
 {
 public:
+	Planet *planet;
+	
 	float p0, p1; //rotation phi (0 = Greenwich)
 	float t0, t1; //inclination theta (0 = equator)
 	
-	virtual void init();
-	virtual void draw();
-	virtual void updateLOD(vec3 eye, vec3 eye_dir);
+	bool activeSide[4];
+	SphericalChunk *children[4];
+	SphericalChunk *parent;
+	int level;
 	
-	int indicesResolution;
-	int num_indices;
-	void updateIndices(int ir);
+	void draw();
 	
-	virtual vec3 getVertex(float x, float y);
-	virtual vec3 getNormal(float x, float y);
+	vec3 getVertex(float x, float y);
+	vec3 getNormal(float x, float y);
 };
