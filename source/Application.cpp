@@ -8,6 +8,7 @@
 #include <SFML/OpenGL.hpp>
 
 #include "Application.h"
+#include "Camera.h"
 #include "ElevationDataSlice.h"
 #include "Framebuffer.h"
 #include "Planet.h"
@@ -100,8 +101,11 @@ int Application::run(int argc, char* argv[])
 	Planet planet;
 	
 	//Camera
-	float rotation = 0, inclination = M_PI / 4;
-	float radius = planet.radius * 5;
+	Camera cam;
+	cam.fov = 45;
+	cam.aspect = 1280.0 / 786;
+	cam.pos.z = planet.radius * 5;
+	float cam_pitch = 0, cam_roll = 0, cam_yaw = M_PI;
 	
 	//Light
 	float light_rotation = 0, light_inclination = M_PI / 4;
@@ -136,6 +140,10 @@ int Application::run(int argc, char* argv[])
 	
 	while (window.isOpen())
 	{
+		float radius = cam.pos.length();
+		vec3 cam_dir = cam.at - cam.pos;
+		cam_dir.normalize();
+		
 		sf::Event event;
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -159,7 +167,11 @@ int Application::run(int argc, char* argv[])
 					} break;
 					case '+': eds.reload(eds.resolution + 1); break;
 					case '-': eds.reload(eds.resolution - 1); break;
-					case 'w': wireframe = !wireframe; break;
+					case ' ': wireframe = !wireframe; break;
+					case 'a': cam_roll += 0.05; break;
+					case 'd': cam_roll -= 0.05; break;
+					case 'w': cam.pos += cam_dir * (radius - planet.radius + 1) * 0.1; break;
+					case 's': cam.pos -= cam_dir * (radius - planet.radius + 1) * 0.1; break;
 				}
 			}
 			else if (event.type == sf::Event::KeyPressed) {
@@ -174,7 +186,7 @@ int Application::run(int argc, char* argv[])
 				mouseDown = false;
 			}
 			else if (event.type == sf::Event::MouseWheelMoved) {
-				radius = std::max<float>(std::min<float>(radius + event.mouseWheel.delta*planet.radius*0.01, planet.radius * 10), planet.radius * 1.25);
+				/*radius = std::max<float>(std::min<float>(radius + event.mouseWheel.delta*planet.radius*0.01, planet.radius * 10), planet.radius * 1.25);*/
 			}
 		}
 		if (mouseDown) {
@@ -183,8 +195,8 @@ int Application::run(int argc, char* argv[])
 				light_rotation    += (v.x - mouseX) * 0.005;
 				light_inclination = std::max<float>(std::min<float>(light_inclination - (v.y - mouseY) * 0.005, M_PI/2*0.99), -M_PI/2*0.99);
 			} else {
-				rotation    -= (v.x - mouseX) * 0.005;
-				inclination = std::max<float>(std::min<float>(inclination + (v.y - mouseY) * 0.005, M_PI/2*0.99), -M_PI/2*0.99);
+				cam_yaw += (v.x - mouseX) * 0.005;
+				cam_pitch += (v.y - mouseY) * 0.005;
 			}
 			mouseX = v.x;
 			mouseY = v.y;
@@ -201,20 +213,22 @@ int Application::run(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		
-		glMatrixMode(GL_PROJECTION);
+		/*glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		gluPerspective(45, aspect, 0.1*radius, 10*radius);
 		
 		
 		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		vec3 eye(radius * sin(rotation) * cos(inclination),
-				 radius * sin(inclination),
-				 radius * cos(rotation) * cos(inclination));
-		gluLookAt(eye.x,
-				  eye.y,
-				  eye.z,  0, 0, 0,  0, 1, 0);
-		planet.updateEye(eye);
+		glLoadIdentity();*/
+		float height = (radius - planet.radius + 1);
+		if (height < 0)	cam.pos *= (planet.radius + 1) / radius;
+		cam.near = 0.1*height;
+		cam.far = 10000*height;
+		cam.at = vec3(radius * sin(cam_yaw) * cos(cam_pitch), radius * sin(cam_pitch), radius * cos(cam_yaw) * cos(cam_pitch)) + cam.pos;
+		//cam.up = cam.pos;
+		//cam.up.normalize();
+		cam.apply();
+		planet.updateEye(cam.pos);
 		
 		vec3 light(light_radius * sin(light_rotation) * cos(light_inclination),
 				   light_radius * sin(light_inclination),

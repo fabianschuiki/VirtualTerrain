@@ -83,7 +83,7 @@ void SphericalChunk::updateLOD(vec3 eye, vec3 eye_dir)
 	float distance = dir.length() / (getVertex(0,0) - getVertex(1,1)).length();
 	
 	//std::cout << "d = " << distance << std::endl;
-	lod = angular / (1 + distance * 1e-1);
+	lod = (angular > -0.25 ? 1 / (1 + distance * 1e-1) : 0);
 	
 	updateIndices(1.0 / lod);
 }
