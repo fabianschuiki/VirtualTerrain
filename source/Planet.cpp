@@ -17,6 +17,7 @@ Planet::Planet() : radius(6.371e6)
 	rootChunk.p1 = 180;
 	rootChunk.t0 = -90;
 	rootChunk.t1 = 90;
+	rootChunk.init();
 }
 
 Planet::~Planet()
@@ -41,4 +42,5 @@ void Planet::draw()
 	/*for (int t = 0; t < 18; t++)
 		for (int p = 0; p < 36; p++)
 			chunks[p][t].draw();*/
+	rootChunk.draw();
 }

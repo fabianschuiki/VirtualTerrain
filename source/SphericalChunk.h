@@ -17,13 +17,24 @@ public:
 	float p0, p1; //rotation phi (0 = Greenwich)
 	float t0, t1; //inclination theta (0 = equator)
 	
-	bool activeSide[4];
-	SphericalChunk *children[4];
+	float pc, tc;
+	/*vec3 center;
+	vec3 corners[4];
+	vec3 sides[4];*/
+	
 	SphericalChunk *parent;
+	SphericalChunk *children[4];
+	bool activeSides[4];
 	int level;
 	
+	SphericalChunk();
+	~SphericalChunk();
+	
+	void init();
 	void draw();
 	
 	vec3 getVertex(float x, float y);
 	vec3 getNormal(float x, float y);
+	
+	void activateChild(int child);
 };
