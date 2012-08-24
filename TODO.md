@@ -1,6 +1,6 @@
 An ordered list of things that need to be accomplished:
 
-- Calculate better normals for the chunks.
+- Culling is too aggressive. More often than not the corners and center points of the chunk are not in view, yet the chunk itself covers the entire screen. In that case, the chunks is being culled. Use axis-aligned boxes around the chunks to determine if they have to be drawn.
 
 - With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
 

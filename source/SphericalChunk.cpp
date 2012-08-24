@@ -96,7 +96,9 @@ void SphericalChunk::draw()
 		glBegin(GL_TRIANGLE_FAN);
 		
 		vec3 center   = getVertex(0.5, 0.5);
-		vec3 center_n = getNormal(0.5, 0.5);
+		//vec3 center_n = getNormal(0.5, 0.5);
+		vec3 center_n = (getVertex(0,0) - getVertex(1,0)).cross(getVertex(0,0) - getVertex(0,1));
+		center_n.normalize();
 		glNormal3f(center_n.x, center_n.y, center_n.z);
 		glVertex3f(center.x, center.y, center.z);
 		
@@ -107,7 +109,7 @@ void SphericalChunk::draw()
 			if (!children[i]) {
 				vec3 corner   = getVertex(corners[i].x, corners[i].y);
 				vec3 corner_n = getNormal(corners[i].x, corners[i].y);
-				glNormal3f(corner_n.x, corner_n.y, corner_n.z);
+				glNormal3f(center_n.x, center_n.y, center_n.z);
 				glVertex3f(corner.x, corner.y, corner.z);
 			}
 			
@@ -115,7 +117,7 @@ void SphericalChunk::draw()
 			if (activeSides[i]) {
 				vec3 side   = getVertex(sides[i].x, sides[i].y);
 				vec3 side_n = getVertex(sides[i].x, sides[i].y);
-				glNormal3f(side_n.x, side_n.y, side_n.z);
+				glNormal3f(center_n.x, center_n.y, center_n.z);
 				glVertex3f(side.x, side.y, side.z);
 			}
 			
@@ -132,7 +134,7 @@ void SphericalChunk::draw()
 		if (!children[0]) {
 			vec3 corner   = getVertex(corners[0].x, corners[0].y);
 			vec3 corner_n = getNormal(corners[0].x, corners[0].y);
-			glNormal3f(corner_n.x, corner_n.y, corner_n.z);
+			glNormal3f(center_n.x, center_n.y, center_n.z);
 			glVertex3f(corner.x, corner.y, corner.z);
 		}
 		
@@ -175,7 +177,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		//std::cout << "child " << i << ": err_world = " << err_world << ", err_screen = " << err_screen << std::endl;
 		
 		//Decide whether the child node is required based on the screen error.
-		bool required = err_screen > 1;
+		bool required = err_screen >= 1;
 		
 		//If the child is required but doesn't exist yet, create one.
 		if (required && !children[i]) {
@@ -190,7 +192,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 	
 	//Perform the LOD on the children.
 	for (int i = 0; i < 4; i++)
-		if (children[i] && level < 10)
+		if (children[i] && level < 16)
 			children[i]->updateDetail(camera);
 }
 
