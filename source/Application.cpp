@@ -335,7 +335,7 @@ int Application::run(int argc, char* argv[])
 		//cam.up = cam.pos;
 		//cam.up.normalize();
 		cam.apply();
-		planet.updateEye(cam.pos);
+		planet.updateDetail(cam);
 		
 		vec3 light(light_radius * sin(light_rotation) * cos(light_inclination),
 				   light_radius * sin(light_inclination),

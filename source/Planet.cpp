@@ -24,17 +24,12 @@ Planet::~Planet()
 {
 }
 
-void Planet::updateEye(vec3 eye)
+void Planet::updateDetail(Camera &camera)
 {
-	vec3 eye_dir = eye;
-	eye_dir.normalize();
+	if ((camera_pos - camera.pos).length2() < 1e-6) return;
+	camera_pos = camera.pos;
 	
-	if ((this->eye - eye).length() < 0.001) return;
-	this->eye = eye;
-	
-	/*for (int t = 0; t < 18; t++)
-		for (int p = 0; p < 36; p++)
-			chunks[p][t].updateLOD(eye, eye_dir);*/
+	rootChunk.updateDetail(camera);
 }
 
 void Planet::draw()

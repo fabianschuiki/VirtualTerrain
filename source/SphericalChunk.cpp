@@ -140,6 +140,11 @@ void SphericalChunk::draw()
 		if (children[i]) children[i]->draw();
 }
 
+void SphericalChunk::updateDetail(Camera &camera)
+{
+	
+}
+
 
 vec3 SphericalChunk::getVertex(float x, float y)
 {

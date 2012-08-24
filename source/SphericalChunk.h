@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Camera.h"
 #include "Vector.h"
 
 class Planet;
@@ -30,6 +31,7 @@ public:
 	
 	void init();
 	void draw();
+	void updateDetail(Camera &camera);
 	
 	vec3 getVertex(float x, float y);
 	vec3 getNormal(float x, float y);
