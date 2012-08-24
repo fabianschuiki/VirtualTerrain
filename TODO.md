@@ -3,9 +3,9 @@ TODO List
 
 An ordered list of things that need to be accomplished:
 
-- With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
+- Terrain tends to have too few details. This might be due to the recursive nature of `deactivateChild()` which has a potentially large area of effect. One approach would be to only deactivate children if the adjacent node exists and has the same amount of children.
 
-- Also take into account that chunks may disappear behind the planet. These chunks are not caught in frustum culling. Some form of angular culling needs to be implemented.
+- With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
 
 - Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land.
 
