@@ -41,17 +41,23 @@ void SphericalChunk::init()
 	pc = (p0+p1)/2;
 	tc = (t0+t1)/2;
 	
-	//std::cout << "initialized node [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "]" << std::endl;
+	//Calculate the bounding box of the chunk.
+	boundingBox.x0 = INFINITY;
+	boundingBox.y0 = INFINITY;
+	boundingBox.z0 = INFINITY;
+	boundingBox.x1 = -INFINITY;
+	boundingBox.y1 = -INFINITY;
+	boundingBox.z1 = -INFINITY;
+	for (int i = 0; i < 4; i++) {
+		vec3 v = getVertex(corners[i].x, corners[i].y);
+		boundingBox.x0 = std::min<double>(boundingBox.x0, v.x);
+		boundingBox.y0 = std::min<double>(boundingBox.y0, v.y);
+		boundingBox.z0 = std::min<double>(boundingBox.z0, v.z);
+		boundingBox.x1 = std::max<double>(boundingBox.x1, v.x);
+		boundingBox.y1 = std::max<double>(boundingBox.y1, v.y);
+		boundingBox.z1 = std::max<double>(boundingBox.z1, v.z);
+	}
 	
-	/*corners[0] = getNormal(1,0);
-	corners[1] = getNormal(0,0);
-	corners[2] = getNormal(0,1);
-	corners[3] = getNormal(1,1);
-	
-	sides[0] = getNormal(0.5,0);
-	sides[1] = getNormal(0,0.5);
-	sides[2] = getNormal(0.5,1);
-	sides[3] = getNormal(1,0.5);*/
 	
 	//static double thresh = pow(1e6, 2);
 	
@@ -155,9 +161,9 @@ void SphericalChunk::updateDetail(Camera &camera)
 	}
 	vec3 center = getVertex(0.5, 0.5);
 	
-	//If the corners are not in view, don't go into any detail at all.
+	//Check whether our bounding box is inside the frustum.
 	Frustum &f = camera.frustum;
-	culled = (level > 2 && !f.contains(corner[0]) && !f.contains(corner[1]) && !f.contains(corner[2]) && !f.contains(corner[3]) && !f.contains(center));
+	culled = (f.contains(boundingBox) == Frustum::kOutside);
 	if (culled) return;
 	
 	//Perform the LOD decision for every child.

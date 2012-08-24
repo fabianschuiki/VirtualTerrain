@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "AABox.h"
 #include "Camera.h"
 #include "Vector.h"
 
@@ -25,7 +26,9 @@ public:
 	bool activeSides[4];
 	int level;
 	bool highlighted;
+	
 	bool culled;
+	AABox boundingBox;
 	
 	SphericalChunk();
 	~SphericalChunk();

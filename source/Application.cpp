@@ -126,7 +126,7 @@ int Application::run(int argc, char* argv[])
 	//std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
 	
 	//Dump the elevation data.
-	sf::Image elev;
+	/*sf::Image elev;
 	elev.create(1440, 720, sf::Color::Black);
 	for (int y = 0; y < 720; y++) {
 		std::cout << "rendering elevation... " << (y * 100 / 720) << "%" << std::endl;
@@ -154,7 +154,7 @@ int Application::run(int argc, char* argv[])
 			//elev.setPixel(x, y, sf::Color(e*255, e*255, e*255));
 		}
 	}
-	elev.saveToFile("elevation.png");
+	elev.saveToFile("elevation.png");*/
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();
