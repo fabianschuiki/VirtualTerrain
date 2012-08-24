@@ -207,7 +207,17 @@ int Application::run(int argc, char* argv[])
 					//case '-': eds.reload(eds.resolution - 1); break;
 					case ' ': wireframe = !wireframe; break;
 					//case 'a': cam_roll += 0.05; break;
-					//case 'd': cam_roll -= 0.05; break;
+						//case 'd': cam_roll -= 0.05; break;
+					case 'a': {
+						double d = (cam_height) * 1e-8;
+						cam_p += -sin(cam_yaw) * d;
+						cam_t += cos(cam_yaw) * d;
+					} break;
+					case 'd': {
+						double d = (cam_height) * 1e-8;
+						cam_p -= -sin(cam_yaw) * d;
+						cam_t -= cos(cam_yaw) * d;
+					} break;
 					case 'w': {
 						double d = (cam_height) * 1e-8;
 						cam_p += cos(cam_yaw) * d;
@@ -230,6 +240,10 @@ int Application::run(int argc, char* argv[])
 					case '7': chk->activateChild(1); break;
 					case '3': chk->activateChild(2); break;
 					case '6': chk->activateChild(3); break;
+					case 'o': chk->deactivateChild(0); break;
+					case 'i': chk->deactivateChild(1); break;
+					case 'k': chk->deactivateChild(2); break;
+					case 'l': chk->deactivateChild(3); break;
 					case '-': chk = chk->findAdjacentChunk(0); break;
 					case '=': chk = chk->findAdjacentChunk(1); break;
 					case '+': chk = chk->findAdjacentChunk(2); break;

@@ -157,7 +157,7 @@ vec3 SphericalChunk::getNormal(float x, float y)
 
 void SphericalChunk::activateChild(int child)
 {
-	if (children[child] != NULL)
+	if (children[child])
 		return;
 	
 	//Create and initialize the child.
@@ -186,7 +186,55 @@ void SphericalChunk::activateChild(int child)
 	findAdjacentChunk(sideB)->activeSides[(sideB+2) % 4] = true;
 }
 
-SphericalChunk* SphericalChunk::findAdjacentChunk(int side)
+void SphericalChunk::deactivateChild(int child)
+{
+	if (!children[child])
+		return;
+	
+	//Remove the child.
+	delete children[child];
+	children[child] = NULL;
+	
+	//Find the adjacent nodes.
+	int next = (child < 3 ? child + 1 : 0);
+	int prev = (child > 0 ? child - 1 : 3);
+	SphericalChunk *adjA = findAdjacentChunk(child, false);
+	SphericalChunk *adjB = findAdjacentChunk(prev, false);
+	
+	//Deactivate adjacent sides if they are not needed anymore.
+	if (!children[next]) {
+		activeSides[child] = false;
+		if (adjA) {
+			adjA->deactivateChild((child+2) % 4);
+			adjA->deactivateChild((next+2) % 4);
+		}
+	} else {
+		children[next]->deactivateChild(child);
+		children[next]->deactivateChild(prev);
+		SphericalChunk *adjChildA = (adjA ? adjA->children[prev] : NULL);
+		if (adjChildA) {
+			adjChildA->deactivateChild((child+2) % 4);
+			adjChildA->deactivateChild((next+2) % 4);
+		}
+	}
+	if (!children[prev]) {
+		activeSides[prev] = false;
+		if (adjB) {
+			adjB->deactivateChild((child+2) % 4);
+			adjB->deactivateChild((prev+2) % 4);
+		}
+	} else {
+		children[prev]->deactivateChild(child);
+		children[prev]->deactivateChild(next);
+		SphericalChunk *adjChildB = (adjB ? adjB->children[next] : NULL);
+		if (adjChildB) {
+			adjChildB->deactivateChild(next);
+			adjChildB->deactivateChild((child+2) % 4);
+		}
+	}
+}
+
+SphericalChunk* SphericalChunk::findAdjacentChunk(int side, bool create)
 {
 	//Calculate the center of the adjacent chunk.
 	double w = p1-p0;
@@ -216,8 +264,12 @@ SphericalChunk* SphericalChunk::findAdjacentChunk(int side)
 		int child = (l ? (b ? 2 : 1) : (b ? 3 : 0));
 		
 		//Create the child if required.
-		if (!chunk->children[child])
-			chunk->activateChild(child);
+		if (!chunk->children[child]) {
+			if (create)
+				chunk->activateChild(child);
+			else
+				return NULL;
+		}
 		
 		//Step down.
 		chunk = chunk->children[child];
