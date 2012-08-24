@@ -1,6 +1,5 @@
 An ordered list of things that need to be accomplished:
 
-- Rewrite camera so that the up-vector equals the sphere normal, and pitch and yaw operate relative to a tangent plane of the sphere.
 - Write `deactivateChild` function for SphericalChunks. This is required for reducing the LOD of the terrain when zooming out.
 - Make the planet activate/deactivate chunks based on LOD requirements, e.g. max. pixel error. "More OpenGL Game Programming" has some code that does this in the "Chunked LOD" section. This probably requires an `updateDetail()` function that takes the camera or the camera's view frustum.
 - Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land.

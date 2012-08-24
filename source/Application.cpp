@@ -106,8 +106,8 @@ int Application::run(int argc, char* argv[])
 	Camera cam;
 	cam.fov = 45;
 	cam.aspect = 1280.0 / 786;
-	cam.pos.z = planet.radius * 5;
-	float cam_pitch = 0, cam_roll = 0, cam_yaw = M_PI;
+	double cam_pitch = -M_PI/4*1.5, cam_yaw = M_PI/2, cam_height = 5000e3;
+	double cam_p = 0, cam_t = 0;
 	
 	//Light
 	float light_rotation = 0, light_inclination = M_PI / 4;
@@ -191,7 +191,7 @@ int Application::run(int argc, char* argv[])
 			}
 			else if (event.type == sf::Event::TextEntered) {
 				switch (event.text.unicode) {
-					case 'r': {
+					case 'p': {
 						normalsShader.reload();
 						extractHighlightsShader.reload();
 						blur0Shader.reload();
@@ -206,10 +206,20 @@ int Application::run(int argc, char* argv[])
 					//case '+': eds.reload(eds.resolution + 1); break;
 					//case '-': eds.reload(eds.resolution - 1); break;
 					case ' ': wireframe = !wireframe; break;
-					case 'a': cam_roll += 0.05; break;
-					case 'd': cam_roll -= 0.05; break;
-					case 'w': cam.pos += cam_dir * (radius - planet.radius + 1) * 0.1; break;
-					case 's': cam.pos -= cam_dir * (radius - planet.radius + 1) * 0.1; break;
+					//case 'a': cam_roll += 0.05; break;
+					//case 'd': cam_roll -= 0.05; break;
+					case 'w': {
+						double d = (cam_height) * 1e-8;
+						cam_p += cos(cam_yaw) * d;
+						cam_t += sin(cam_yaw) * d;
+					} break;
+					case 's': {
+						double d = (cam_height) * 1e-8;
+						cam_p -= cos(cam_yaw) * d;
+						cam_t -= sin(cam_yaw) * d;
+					} break;
+					case 'r': cam_height *= 1.10; break;
+					case 'f': cam_height /= 1.10; break;
 						
 					case '0': if (chk->parent) chk = chk->parent; break;
 					case '5': if (chk->children[0]) chk = chk->children[0]; break;
@@ -277,11 +287,37 @@ int Application::run(int argc, char* argv[])
 		
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();*/
-		float height = (radius - planet.radius + 1);
-		if (height < 0)	cam.pos *= (planet.radius + 1) / radius;
-		cam.near = 0.1*height;
-		cam.far = 10000*height;
-		cam.at = vec3(radius * sin(cam_yaw) * cos(cam_pitch), radius * sin(cam_pitch), radius * cos(cam_yaw) * cos(cam_pitch)) + cam.pos;
+		cam.near = 0.1*cam_height;
+		cam.far = 10000*cam_height;
+		
+		//Calculate the camera up vector and position.
+		cam.up.x = sin(cam_p) * cos(cam_t);
+		cam.up.y = sin(cam_t);
+		cam.up.z = cos(cam_p) * cos(cam_t);
+		cam.pos = cam.up * (planet.radius + cam_height);
+		
+		//Calculate the x and z coordinates of the camera space.
+		vec3 cam_x, cam_z;
+		
+		cam_x.x =  cos(cam_p) * cos(cam_t);
+		cam_x.y = 0;
+		cam_x.z = -sin(cam_p) * cos(cam_t);
+		
+		cam_z.x = sin(cam_p) * -sin(cam_t);
+		cam_z.y = cos(cam_t);
+		cam_z.z = cos(cam_p) * -sin(cam_t);
+		
+		//Calculate where the camera is looking at based on yaw and pitch.
+		vec3 cam_at;
+		cam_at.x = cos(cam_yaw) * cos(cam_pitch);
+		cam_at.y = sin(cam_pitch);
+		cam_at.z = sin(cam_yaw) * cos(cam_pitch);
+		
+		//Calculate the world space point the camera is looking at.
+		cam.at = cam.pos + cam_x*cam_at.x + cam.up*cam_at.y + cam_z*cam_at.z;
+		
+		
+		//cam.at = vec3(radius * sin(cam_yaw) * cos(cam_pitch), radius * sin(cam_pitch), radius * cos(cam_yaw) * cos(cam_pitch)) + cam.pos;
 		//cam.up = cam.pos;
 		//cam.up.normalize();
 		cam.apply();
