@@ -34,5 +34,6 @@ double PerlinElevation::getElevation(double x, double y)
 		r += Perlin::noise2(nx * frequency, ny * frequency) * amplitude;
 	}
 	
-	return r;
+	//if (r < 0) r = 0;
+	return r * 8e3;
 }

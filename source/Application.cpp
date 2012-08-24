@@ -131,7 +131,7 @@ int Application::run(int argc, char* argv[])
 	for (int y = 0; y < 720; y++) {
 		std::cout << "rendering elevation... " << (y * 100 / 720) << "%" << std::endl;
 		for (int x = 0; x < 1440; x++) {
-			double e = planet.elevation->getElevation(x / 4.0, y / 4.0);
+			double e = planet.elevation->getElevation(x / 4.0, y / 4.0) / 8e3;
 			
 			sf::Color c;
 			if (e < 0) {
