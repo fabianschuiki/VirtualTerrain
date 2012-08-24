@@ -182,6 +182,8 @@ int Application::run(int argc, char* argv[])
 		vec3 cam_dir = cam.at - cam.pos;
 		cam_dir.normalize();
 		
+		double movement_speed = (std::max<double>(cam_height, 0) + 1e3) * 1e-8;
+		
 		sf::Event event;
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -209,24 +211,20 @@ int Application::run(int argc, char* argv[])
 					//case 'a': cam_roll += 0.05; break;
 						//case 'd': cam_roll -= 0.05; break;
 					case 'a': {
-						double d = (cam_height) * 1e-8;
-						cam_p += -sin(cam_yaw) * d;
-						cam_t += cos(cam_yaw) * d;
+						cam_p += -sin(cam_yaw) * movement_speed;
+						cam_t += cos(cam_yaw) * movement_speed;
 					} break;
 					case 'd': {
-						double d = (cam_height) * 1e-8;
-						cam_p -= -sin(cam_yaw) * d;
-						cam_t -= cos(cam_yaw) * d;
+						cam_p -= -sin(cam_yaw) * movement_speed;
+						cam_t -= cos(cam_yaw) * movement_speed;
 					} break;
 					case 'w': {
-						double d = (cam_height) * 1e-8;
-						cam_p += cos(cam_yaw) * d;
-						cam_t += sin(cam_yaw) * d;
+						cam_p += cos(cam_yaw) * movement_speed;
+						cam_t += sin(cam_yaw) * movement_speed;
 					} break;
 					case 's': {
-						double d = (cam_height) * 1e-8;
-						cam_p -= cos(cam_yaw) * d;
-						cam_t -= sin(cam_yaw) * d;
+						cam_p -= cos(cam_yaw) * movement_speed;
+						cam_t -= sin(cam_yaw) * movement_speed;
 					} break;
 					case 'r': cam_height *= 1.10; break;
 					case 'f': cam_height /= 1.10; break;

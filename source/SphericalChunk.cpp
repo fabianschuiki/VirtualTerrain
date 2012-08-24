@@ -9,6 +9,8 @@
 #include "Planet.h"
 #include "SphericalChunk.h"
 
+#define MIN_LEVEL 3
+
 
 static const struct { double x; double y; } corners[4] = {{1,1}, {0,1}, {0,0}, {1,0}};
 static const struct { double x; double y; } sides[4] = {{0.5,1}, {0,0.5}, {0.5,0}, {1,0.5}};
@@ -61,7 +63,7 @@ void SphericalChunk::init()
 	
 	//static double thresh = pow(1e6, 2);
 	
-	if (level < 4) {
+	if (level <= MIN_LEVEL) {
 		activateChild(0);
 		activateChild(1);
 		activateChild(2);
@@ -163,7 +165,13 @@ void SphericalChunk::updateDetail(Camera &camera)
 	
 	//Check whether our bounding box is inside the frustum.
 	Frustum &f = camera.frustum;
-	culled = (f.contains(boundingBox) == Frustum::kOutside);
+	culled = (level > MIN_LEVEL && f.contains(boundingBox) == Frustum::kOutside);
+	if (!culled && level > MIN_LEVEL) {
+		for (int i = 0; i < 4; i++) {
+			double d = (camera.pos - corner[i]*0.9).dot(corner[i]); //since no normalization is performed, only the sign of d has a meaning.
+			if (d < 0) culled = true;
+		}
+	}
 	if (culled) return;
 	
 	//Perform the LOD decision for every child.
@@ -183,7 +191,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		//std::cout << "child " << i << ": err_world = " << err_world << ", err_screen = " << err_screen << std::endl;
 		
 		//Decide whether the child node is required based on the screen error.
-		bool required = err_screen >= 1;
+		bool required = (err_screen >= 2 || level <= MIN_LEVEL);
 		
 		//If the child is required but doesn't exist yet, create one.
 		if (required && !children[i]) {

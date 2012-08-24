@@ -1,6 +1,7 @@
-An ordered list of things that need to be accomplished:
+TODO List
+---------
 
-- Culling is too aggressive. More often than not the corners and center points of the chunk are not in view, yet the chunk itself covers the entire screen. In that case, the chunks is being culled. Use axis-aligned boxes around the chunks to determine if they have to be drawn.
+An ordered list of things that need to be accomplished:
 
 - With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
 
@@ -17,3 +18,9 @@ An ordered list of things that need to be accomplished:
 - Alter the elevation provider to refine the terrain in between data points. Maybe this should take place in another class, maybe `SceneryProvider` or the like. At a later stage, roads and land use data will affect the way how terrain is refined (roads require flat and gradual slopes, etc.).
 
 - Stream and cache OpenStreetMap data to display roads, cities and forests.
+
+
+Potential Issues
+----------------
+
+- SphericalChunks are culled when all of their normals face away from the camera. If the chunk closer to the camera has a deep valley and the chunk behind it has a steep incline it will be culled if it faces away from the camera, even if the incline might be visible due to the valley. This may be fixed by not taking the direction vector from the corner vertices, but moving the vertices towards the center by the highest elevation value in the chunk.
