@@ -3,6 +3,7 @@
  */
 
 #include <cmath>
+#include "Perlin.h"
 #include "PerlinElevation.h"
 
 
@@ -17,15 +18,21 @@ static inline double findnoise2(double x, double y)
 
 double PerlinElevation::getElevation(double x, double y)
 {
-	/*return cos(x / 180 * M_PI * 10)*cos(y / 180 * M_PI * 10) * 0.5e6;*/
+	const static int octaves = 8;
+	const static double persistence = 0.5;
 	
-	double result = 1;
+	double nx = x / 180;
+	double ny = y / 180;
 	
-	const int octaves = 16;
-	for (int i = 1; i < octaves+1; i++) {
-		int power = (1 << i);
-		result += findnoise2(x * power, y * power) / power;
+	double r = 0;
+	double n = 0;
+	for (int i = 0; i < octaves; i++) {
+		double frequency = (1 << i);
+		double amplitude = pow(persistence, i);
+		
+		n += amplitude;
+		r += Perlin::noise2(nx * frequency, ny * frequency) * amplitude;
 	}
 	
-	return result * 0.2e6;
+	return r;
 }

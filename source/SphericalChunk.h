@@ -18,9 +18,6 @@ public:
 	float t0, t1; //inclination theta (0 = equator)
 	
 	float pc, tc;
-	/*vec3 center;
-	vec3 corners[4];
-	vec3 sides[4];*/
 	
 	SphericalChunk *parent;
 	SphericalChunk *children[4];

@@ -60,7 +60,7 @@ endif ()
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/thirdparty" ${CMAKE_MODULE_PATH})
 
 # SFML
-find_package(SFML REQUIRED system window audio network)
+find_package(SFML REQUIRED system window audio network graphics)
 include_directories(${SFML_INCLUDE_DIR})
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 

@@ -6,10 +6,12 @@
 #include <iostream>
 #include <fstream>
 #include <SFML/OpenGL.hpp>
+#include <SFML/Graphics/Image.hpp>
 
 #include "Application.h"
 #include "Camera.h"
 //#include "ElevationDataSlice.h"
+#include "ElevationProvider.h"
 #include "Framebuffer.h"
 #include "Planet.h"
 #include "ShaderProgram.h"
@@ -122,6 +124,37 @@ int Application::run(int argc, char* argv[])
 	//eds.reload(0);
 	
 	//std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
+	
+	//Dump the elevation data.
+	sf::Image elev;
+	elev.create(1440, 720, sf::Color::Black);
+	for (int y = 0; y < 720; y++) {
+		std::cout << "rendering elevation... " << (y * 100 / 720) << "%" << std::endl;
+		for (int x = 0; x < 1440; x++) {
+			double e = planet.elevation->getElevation(x / 4.0, y / 4.0);
+			
+			sf::Color c;
+			if (e < 0) {
+				c.r = 0;
+				c.g = 255 / (-e * 50 + 1);
+				c.b = 255;
+			} else {
+				c.r = 255 / (e * 10 + 1);
+				c.g = 255;
+				c.b = 0;
+				
+				double m = e;
+				c.r = (m * 255 + (1-m)*c.r);
+				c.g = (m * 255 + (1-m)*c.g);
+				c.b = (m * 255 + (1-m)*c.b);
+			}
+			elev.setPixel(x, y, c);
+			
+			//e = (e + 1) / 2;
+			//elev.setPixel(x, y, sf::Color(e*255, e*255, e*255));
+		}
+	}
+	elev.saveToFile("elevation.png");
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();
