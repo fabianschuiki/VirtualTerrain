@@ -105,7 +105,7 @@ int Application::run(int argc, char* argv[])
 	//Camera
 	Camera cam;
 	cam.fov = 45;
-	cam.aspect = 1280.0 / 786;
+	cam.setViewport(window.getSize().x, window.getSize().y);
 	double cam_pitch = -M_PI/4*1.5, cam_yaw = M_PI/2, cam_height = 5000e3;
 	double cam_p = 0, cam_t = 0;
 	
@@ -114,12 +114,12 @@ int Application::run(int argc, char* argv[])
 	float light_radius = 1e8;
 	
 	//Load some elevation data.
-	int centerx = 3425, centery = 5116;
+	//int centerx = 3425, centery = 5116;
 	//int centerx = 2400, centery = 3000;
-	int grid_size = 100;
-	float scale = 8 / (float)grid_size;
-	float elev_scale = 0.005 * scale;
-	short elev_off = 0;
+	//int grid_size = 100;
+	//float scale = 8 / (float)grid_size;
+	//float elev_scale = 0.005 * scale;
+	//short elev_off = 0;
 	//ElevationDataSlice eds("/tmp/W020N90.DEM");
 	//eds.reload(0);
 	
@@ -158,7 +158,7 @@ int Application::run(int argc, char* argv[])
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();
-	float aspect = 1280.0 / 768;
+	//float aspect = 1280.0 / 768;
 	int mouseX, mouseY;
 	bool mouseDown = false;
 	bool dragLight = false;
@@ -178,7 +178,7 @@ int Application::run(int argc, char* argv[])
 	{
 		SphericalChunk *prev_chk = chk;
 		
-		float radius = cam.pos.length();
+		//float radius = cam.pos.length();
 		vec3 cam_dir = cam.at - cam.pos;
 		cam_dir.normalize();
 		
@@ -187,7 +187,7 @@ int Application::run(int argc, char* argv[])
 			if (event.type == sf::Event::Closed)
 				window.close();
 			else if (event.type == sf::Event::Resized) {
-				aspect = (float)event.size.width / event.size.height;
+				cam.setViewport(event.size.width, event.size.height);
 			}
 			else if (event.type == sf::Event::TextEntered) {
 				switch (event.text.unicode) {
@@ -428,7 +428,8 @@ int Application::run(int argc, char* argv[])
 		
 		
 		//Final image.
-		glViewport(0, 0, window.getSize().x, window.getSize().y);
+		//glViewport(0, 0, window.getSize().x, window.getSize().y);
+		cam.applyViewport();
 		Framebuffer::unbind();
 		glUseProgram(0);
 		

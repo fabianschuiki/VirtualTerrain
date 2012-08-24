@@ -15,6 +15,9 @@ Camera::Camera()
 	
 	up.y = 1;
 	at.z = 1;
+	
+	viewportWidth = 0;
+	viewportHeight = 0;
 }
 
 /** Resets the projection matrix to the appropriate perspective and the modelview matrix according
@@ -28,6 +31,11 @@ void Camera::apply()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(pos.x, pos.y, pos.z,  at.x,  at.y,  at.z,  up.x,  up.y,  up.z);
+}
+
+void Camera::applyViewport()
+{
+	glViewport(0, 0, viewportWidth, viewportHeight);
 }
 
 Frustum Camera::getViewFrustum()
@@ -74,4 +82,13 @@ Frustum Camera::getViewFrustum()
 	f.f.set(ftr, ftl, fbl);
 	
 	return f;
+}
+
+void Camera::setViewport(int w, int h)
+{
+	viewportWidth = w;
+	viewportHeight = h;
+	aspect = (float)w / h;
+	
+	K = viewportWidth / (2 * tan(fov * aspect / 2));
 }
