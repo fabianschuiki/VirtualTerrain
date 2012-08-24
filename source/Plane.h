@@ -11,10 +11,10 @@ class Plane
 {
 public:
 	vec3 n;
-	float d;
+	double d;
 	
 	Plane();
 	
 	void set(vec3 a, vec3 b, vec3 c);
-	float getDistance(vec3 p);
+	double getDistance(vec3 p);
 };

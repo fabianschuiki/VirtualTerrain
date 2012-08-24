@@ -13,8 +13,8 @@ Plane::Plane()
 /** Sets the plane to contain the three points a, b and c. */
 void Plane::set(vec3 a, vec3 b, vec3 c)
 {
-	vec3 ba;
-	vec3 bc;
+	vec3 ba = (a-b);
+	vec3 bc = (c-b);
 	
 	n = bc.cross(ba);
 	n.normalize();
@@ -23,7 +23,7 @@ void Plane::set(vec3 a, vec3 b, vec3 c)
 }
 
 /** Returns the distance of the given point to the plane. */
-float Plane::getDistance(vec3 p)
+double Plane::getDistance(vec3 p)
 {
 	return d + n.dot(p);
 }

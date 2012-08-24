@@ -21,7 +21,7 @@ Frustum::Coverage Frustum::contains(vec3 p)
  * and Frustum::kIntersect if the sphere intersects the frustum. */
 Frustum::Coverage Frustum::contains(Sphere s)
 {
-	float d;
+	double d;
 	Coverage result = kInside;
 	
 	d = t.getDistance(s.c); if (d < -s.r) return kOutside; else if (d < s.r) result = kIntersect;

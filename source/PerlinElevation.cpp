@@ -27,7 +27,7 @@ double PerlinElevation::getElevation(double x, double y)
 	double r = 0;
 	double n = 0;
 	for (int i = 0; i < octaves; i++) {
-		double frequency = (1 << i);
+		double frequency = (1 << i) * 32;
 		double amplitude = pow(persistence, i);
 		
 		n += amplitude;
@@ -35,5 +35,5 @@ double PerlinElevation::getElevation(double x, double y)
 	}
 	
 	//if (r < 0) r = 0;
-	return r * 8e3;
+	return r * 8e4;
 }

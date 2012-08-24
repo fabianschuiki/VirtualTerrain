@@ -10,6 +10,10 @@
 #include "SphericalChunk.h"
 
 
+static const struct { double x; double y; } corners[4] = {{1,1}, {0,1}, {0,0}, {1,0}};
+static const struct { double x; double y; } sides[4] = {{0.5,1}, {0,0.5}, {0.5,0}, {1,0.5}};
+
+
 SphericalChunk::SphericalChunk()
 {
 	for (int i = 0; i < 4; i++) {
@@ -20,6 +24,7 @@ SphericalChunk::SphericalChunk()
 	parent = NULL;
 	level = 0;
 	highlighted = false;
+	culled = false;
 }
 
 SphericalChunk::~SphericalChunk()
@@ -48,14 +53,14 @@ void SphericalChunk::init()
 	sides[2] = getNormal(0.5,1);
 	sides[3] = getNormal(1,0.5);*/
 	
-	static double thresh = pow(1e6, 2);
+	//static double thresh = pow(1e6, 2);
 	
-	if (level < 2) {
+	if (level < 4) {
 		activateChild(0);
 		activateChild(1);
 		activateChild(2);
 		activateChild(3);
-	} else {
+	}/* else {
 		//Activate children based on side width for debugging purposes.
 		vec3 corners[4] = {getVertex(1,0), getVertex(0,0), getVertex(0,1), getVertex(1,1)};
 		for (int i = 0; i < 4; i++) {
@@ -68,11 +73,13 @@ void SphericalChunk::init()
 				activateChild(next);
 			}
 		}
-	}
+	}*/
 }
 
 void SphericalChunk::draw()
 {
+	if (culled) return;
+	
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
 		bool hl = false;
@@ -92,9 +99,6 @@ void SphericalChunk::draw()
 		vec3 center_n = getNormal(0.5, 0.5);
 		glNormal3f(center_n.x, center_n.y, center_n.z);
 		glVertex3f(center.x, center.y, center.z);
-		
-		static const struct { double x; double y; } corners[4] = {{1,1}, {0,1}, {0,0}, {1,0}};
-		static const struct { double x; double y; } sides[4] = {{0.5,1}, {0,0.5}, {0.5,0}, {1,0.5}};
 		
 		//Loop through the quadrants.
 		for (int i = 0; i < 4; i++)
@@ -142,7 +146,52 @@ void SphericalChunk::draw()
 
 void SphericalChunk::updateDetail(Camera &camera)
 {
+	//Calculate the five points of this chunk.
+	vec3 corner[4];
+	for (int i = 0; i < 4; i++) {
+		corner[i] = getVertex(corners[i].x, corners[i].y);
+	}
+	vec3 center = getVertex(0.5, 0.5);
 	
+	//If the corners are not in view, don't go into any detail at all.
+	Frustum &f = camera.frustum;
+	culled = (level > 2 && !f.contains(corner[0]) && !f.contains(corner[1]) && !f.contains(corner[2]) && !f.contains(corner[3]) && !f.contains(center));
+	if (culled) return;
+	
+	//Perform the LOD decision for every child.
+	for (int i = 0; i < 4; i++)
+	{
+		//Calculate the actual and interpolated center of this child.
+		vec3 ca = getVertex((corners[i].x + 0.5) / 2, (corners[i].y + 0.5) / 2);
+		vec3 ci = (corner[i] + center) / 2;
+		
+		//Calculate the error in world space.
+		double err_world = (ca-ci).length();
+		
+		//Calculate the error in screen space.
+		double D = (ci - camera.pos).length();
+		double err_screen = err_world / D * camera.K;
+		
+		//std::cout << "child " << i << ": err_world = " << err_world << ", err_screen = " << err_screen << std::endl;
+		
+		//Decide whether the child node is required based on the screen error.
+		bool required = err_screen > 1;
+		
+		//If the child is required but doesn't exist yet, create one.
+		if (required && !children[i]) {
+			activateChild(i);
+		}
+		
+		//If the child is not required but does exist, remove it.
+		if (!required && children[i]) {
+			deactivateChild(i);
+		}
+	}
+	
+	//Perform the LOD on the children.
+	for (int i = 0; i < 4; i++)
+		if (children[i] && level < 10)
+			children[i]->updateDetail(camera);
 }
 
 

@@ -25,6 +25,7 @@ public:
 	bool activeSides[4];
 	int level;
 	bool highlighted;
+	bool culled;
 	
 	SphericalChunk();
 	~SphericalChunk();

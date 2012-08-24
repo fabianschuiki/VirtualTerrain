@@ -1,6 +1,10 @@
 An ordered list of things that need to be accomplished:
 
-- Make the planet activate/deactivate chunks based on LOD requirements, e.g. max. pixel error. This should be possible by somehow calculating the pixel error between the chunk with and without the child node. This probably requires an `updateDetail()` function that takes the camera or the camera's view frustum.
+- Calculate better normals for the chunks.
+
+- With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
+
+- Also take into account that chunks may disappear behind the planet. These chunks are not caught in frustum culling. Some form of angular culling needs to be implemented.
 
 - Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land.
 

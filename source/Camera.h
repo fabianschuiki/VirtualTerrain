@@ -18,12 +18,13 @@ public:
 	float near, far;
 	vec3 pos, up, at;
 	float K; //perspective scaling factor
+	Frustum frustum;
 	
 	Camera();
 	
 	void apply();
 	void applyViewport();
-	Frustum getViewFrustum();
+	void updateFrustum();
 	
 	void setViewport(int w, int h);
 	

@@ -38,16 +38,16 @@ void Camera::applyViewport()
 	glViewport(0, 0, viewportWidth, viewportHeight);
 }
 
-Frustum Camera::getViewFrustum()
+void Camera::updateFrustum()
 {
 	//Calculate the near and far plane dimensions.
-	float tanfov = tan(fov * 0.5 / 180 * M_PI);
+	double tanfov = tan(fov * 0.5 / 180 * M_PI);
 	
-	float nh = near * tanfov;
-	float nw = nh * aspect;
+	double nh = near * tanfov;
+	double nw = nh * aspect;
 	
-	float fh = far * tanfov;
-	float fw = fh * aspect;
+	double fh = far * tanfov;
+	double fw = fh * aspect;
 	
 	//Calculate the camera axis.
 	vec3 z = pos - at;
@@ -73,15 +73,12 @@ Frustum Camera::getViewFrustum()
 	vec3 fbr = fc - y*fh + x*fw;
 	
 	//Compute the frustum.
-	Frustum f;
-	f.t.set(ntr, ntl, ftl);
-	f.b.set(nbl, nbr, fbr);
-	f.l.set(ntl, nbl, fbl);
-	f.r.set(nbr, ntr, fbr);
-	f.n.set(ntl, ntr, nbr);
-	f.f.set(ftr, ftl, fbl);
-	
-	return f;
+	frustum.t.set(ntr, ntl, ftl);
+	frustum.b.set(nbl, nbr, fbr);
+	frustum.l.set(ntl, nbl, fbl);
+	frustum.r.set(nbr, ntr, fbr);
+	frustum.n.set(ntl, ntr, nbr);
+	frustum.f.set(ftr, ftl, fbl);
 }
 
 void Camera::setViewport(int w, int h)
@@ -90,5 +87,5 @@ void Camera::setViewport(int w, int h)
 	viewportHeight = h;
 	aspect = (float)w / h;
 	
-	K = viewportWidth / (2 * tan(fov * aspect / 2));
+	K = viewportWidth / (2 * tan(fov / 2));
 }

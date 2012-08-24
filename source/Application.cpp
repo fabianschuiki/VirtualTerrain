@@ -334,6 +334,7 @@ int Application::run(int argc, char* argv[])
 		//cam.at = vec3(radius * sin(cam_yaw) * cos(cam_pitch), radius * sin(cam_pitch), radius * cos(cam_yaw) * cos(cam_pitch)) + cam.pos;
 		//cam.up = cam.pos;
 		//cam.up.normalize();
+		cam.updateFrustum();
 		cam.apply();
 		planet.updateDetail(cam);
 		
