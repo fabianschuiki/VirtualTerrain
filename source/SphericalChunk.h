@@ -32,6 +32,8 @@ public:
 	Vertex sides[4];
 	Vertex center;
 	
+	double pixelLevel;
+	
 	SphericalChunk *parent;
 	SphericalChunk *children[4];
 	bool activeSides[4];

@@ -104,16 +104,38 @@ void SphericalChunk::draw()
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
 		bool hl = false;
-		for (SphericalChunk *c = this; c; c = c->parent) {
+		/*for (SphericalChunk *c = this; c; c = c->parent) {
 			if (c->highlighted) {
 				hl = true;
 				break;
 			}
-		}
+		}*/
 		if (hl)
 			glColor3f(0, 0.5, 1);
-		else
-			glColor3f(1, 1, 1);
+		else {
+			//glColor3f(1, 1, 1);
+			
+			double H = 90 - 90.0 * (1 / (1 + std::max(0, level - MIN_LEVEL) * 0.5));
+			double S = 1;
+			double V = 1;
+			
+			int hi = floor(H/60);
+			double f = (H/60 - hi);
+			
+			double p = V*(1-S);
+			double q = V*(1-S*f);
+			double t = V*(1-S*(1-f));
+			
+			switch (hi) {
+				case 0:
+				case 6: glColor3f(V,t,p); break;
+				case 1: glColor3f(q,V,p); break;
+				case 2: glColor3f(p,V,t); break;
+				case 3: glColor3f(p,q,V); break;
+				case 4: glColor3f(t,p,V); break;
+				case 5: glColor3f(V,p,q); break;
+			}
+		}
 		glBegin(GL_TRIANGLE_FAN);
 		
 		/*vec3 center   = getVertex(0.5, 0.5);
@@ -162,19 +184,12 @@ void SphericalChunk::draw()
 
 void SphericalChunk::updateDetail(Camera &camera)
 {
-	//Calculate the five points of this chunk.
-	vec3 corner[4];
-	for (int i = 0; i < 4; i++) {
-		corner[i] = getVertex(corner_coeffs[i].x, corner_coeffs[i].y);
-	}
-	vec3 center = getVertex(0.5, 0.5);
-	
 	//Check whether our bounding box is inside the frustum.
 	Frustum &f = camera.frustum;
 	culled = (level > MIN_LEVEL && f.contains(boundingBox) == Frustum::kOutside);
 	if (!culled && level > MIN_LEVEL) {
 		for (int i = 0; i < 4; i++) {
-			double d = (camera.pos - corner[i]*0.9).dot(corner[i]); //since no normalization is performed, only the sign of d has a meaning.
+			double d = (camera.pos - corners[i].position*0.9).dot(corners[i].position); //since no normalization is performed, only the sign of d has a meaning.
 			if (d < 0) culled = true;
 		}
 	}
@@ -185,7 +200,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 	{
 		//Calculate the actual and interpolated center of this child.
 		vec3 ca = getVertex((corner_coeffs[i].x + 0.5) / 2, (corner_coeffs[i].y + 0.5) / 2);
-		vec3 ci = (corner[i] + center) / 2;
+		vec3 ci = (corners[i].position + center.position) / 2;
 		
 		//Calculate the error in world space.
 		double err_world = (ca-ci).length();
@@ -210,6 +225,10 @@ void SphericalChunk::updateDetail(Camera &camera)
 			deactivateChild(i);
 		}
 	}
+	
+	//Calculate the pixel level which is a measure of how many pixels are covered by one side of the vertex.
+	double D = (center.position - camera.pos).length();
+	pixelLevel = 1e6 / D;
 	
 	//Perform the LOD on the children.
 	for (int i = 0; i < 4; i++)
