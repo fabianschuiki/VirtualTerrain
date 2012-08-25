@@ -3,15 +3,50 @@ TODO List
 
 An ordered list of things that need to be accomplished:
 
+- Move the surface normal calculation to ElevationProvider by adding `getNormal(float x, float y)`. In the future DEM provider, this allows the normal to be calculated when the data is loaded, rather than recalculating it every time stuff is rendered.
+
+- Speed up `SphericalChunk` by, for each of the chunk's 4 corners, 4 side centers and center storing the sphere normal (`getNormal()`) at initialization and the elevation and surface normal at each detail update. This requires
+		struct Vertex {
+			vec3 unit;
+			vec3 normal;
+			double height;
+		};
+		struct Vertex corners[4];
+		struct Vertex sides[4];
+		struct Vertex center;
+	to be added to the `SphericalChunk` class. The actual *position* of a vertex may then be calculated through `v.unit * (planet->radius + v.height)`. Alternatively, the position might be precalculated and stored as `vec3 position` in the Vertex structure, trading performance for memory.
+
+- Check memory consumption of terrain. How much is it? >1GB?
+
+- Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
+
 - Terrain tends to have too few details. This might be due to the recursive nature of `deactivateChild()` which has a potentially large area of effect. One approach would be to only deactivate children if the adjacent node exists and has the same amount of children.
 
 - With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
 
-- Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land.
+- Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land. This allows the use of different shaders, materials and textures for each.
 
-- Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
+- Create a class that renders a certain range of the ElevationProvider data to a texture at various resolutions. This includes normals, color (from some source), and various attributes (specular intensity, etc.). This produces multiple textures which have to be stored in a separate structure, e.g. `BakedElevation`, which also keeps track what range the textures cover. Don't recalculate the textures too often.
+
+- Use the baked elevation data to cover the terrain. Create one texture that covers all visible chunks as the least detailed resolution. Then use a maximum pixel error or the like to decide which range of the terrain to cover in a more detailed texture. Maybe even consider a dynamic number of textures. Use the coordinates stored within the baked texture to calculate texture coordinates, so it is possible to not update the texture every frame, but rather slowly.
 
 - Compile the spherical chunks into VBOs, i.e. multiple VBOs for different LODs and ocean/land. This probably requires a new class that holds the compiled VBOs, or the `Planet` class could handle that. Having separated LODs and terrain type allows the ocean to be rendered with an ocean shader and the landmasses with differently detailed textures.
+
+- Create a job based multi-threading environment. Create a `JobQueue` that holds a list of `Job`s that need to be executed. Job should have among its properties:
+  - Type, e.g. Terrain, Elevation Baking, etc.
+  - Priority
+  - whether two jobs of the same type are able to run simultaneously
+  - Jobs upon whose completion this Job depends.
+  - Job types which have to be complete before this. Useful if you have multiple jobs doing some calculations and e.g. a baking job needs the results.
+  - whether this job clears all queued jobs of the same type (i.e. an update job supersedes its previous calls)
+  
+  Maybe jobs should be able to be stalled, i.e. be able to cease execution and add themselves to the queue again (e.g. staged execution).
+  
+  The job queue is thread safe and lists the queued jobs, where jobs may be added or removed. When a job comes in, the job queue decides whether it is able to run (dependencies, etc.), and increases a sempahore. The `JobWorkerThread`s decrease the semaphore (which blocks and sleeps until a job becomes available) and ask the job queue for the next job to be executed, which in turn returns the one with the highest priority whose dependencies and constraints have been met.
+
+- Move terrain detail update into a separate thread. Accomplish this by creating *TerrainLOD* jobs that perform the calculations.
+
+- Move the VBO compilation code into a separate thread. Accomplish this by creating *TerrainVBO* jobs that clear previous jobs of this type and depend on other terrain jobs to complete, e.g. *TerrainLOD*. This maps an OpenGL buffer, compiles the vertices into it, and unmaps the buffer (Might be impossible due to the thread unsafeness of OpenGL. Maybe move the buffer mapping to the main loop?).
 
 - Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
 
