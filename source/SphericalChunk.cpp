@@ -200,7 +200,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		
 		//If the child is not required but does exist, remove it.
 		if (!required && children[i]) {
-			//deactivateChild(i);
+			deactivateChild(i);
 		}
 	}
 	
@@ -258,12 +258,11 @@ void SphericalChunk::activateChild(int child)
 
 void SphericalChunk::deactivateChild(int child)
 {
-	if (!children[child])
-		return;
-	
 	//Remove the child.
-	delete children[child];
-	children[child] = NULL;
+	if (children[child]) {
+		delete children[child];
+		children[child] = NULL;
+	}
 	
 	//Find the adjacent nodes.
 	int next = (child < 3 ? child + 1 : 0);
@@ -273,10 +272,12 @@ void SphericalChunk::deactivateChild(int child)
 	
 	//Deactivate adjacent sides if they are not needed anymore.
 	if (!children[next]) {
-		activeSides[child] = false;
-		if (adjA) {
-			adjA->deactivateChild((child+2) % 4);
-			adjA->deactivateChild((next+2) % 4);
+		if (activeSides[child]) {
+			activeSides[child] = false;
+			if (adjA) {
+				adjA->deactivateChild((child+2) % 4);
+				adjA->deactivateChild((next+2) % 4);
+			}
 		}
 	} else {
 		children[next]->deactivateChild(child);
@@ -288,10 +289,12 @@ void SphericalChunk::deactivateChild(int child)
 		}
 	}
 	if (!children[prev]) {
-		activeSides[prev] = false;
-		if (adjB) {
-			adjB->deactivateChild((child+2) % 4);
-			adjB->deactivateChild((prev+2) % 4);
+		if (activeSides[prev]) {
+			activeSides[prev] = false;
+			if (adjB) {
+				adjB->deactivateChild((child+2) % 4);
+				adjB->deactivateChild((prev+2) % 4);
+			}
 		}
 	} else {
 		children[prev]->deactivateChild(child);

@@ -22,8 +22,6 @@ An ordered list of things that need to be accomplished:
 
 - Terrain tends to have too few details. This might be due to the recursive nature of `deactivateChild()` which has a potentially large area of effect. One approach would be to only deactivate children if the adjacent node exists and has the same amount of children.
 
-- With automated activation/deactivation of children, there are T junctions occuring. Looks like removing a child does not always appropriately deactivate the adjacent chunk's edge.
-
 - Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land. This allows the use of different shaders, materials and textures for each.
 
 - Create a class that renders a certain range of the ElevationProvider data to a texture at various resolutions. This includes normals, color (from some source), and various attributes (specular intensity, etc.). This produces multiple textures which have to be stored in a separate structure, e.g. `BakedElevation`, which also keeps track what range the textures cover. Don't recalculate the textures too often.
