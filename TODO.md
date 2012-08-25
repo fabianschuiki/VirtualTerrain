@@ -1,5 +1,5 @@
-TODO List
----------
+VirtualTerrain TODO
+===================
 
 An ordered list of things that need to be accomplished:
 
@@ -50,9 +50,29 @@ An ordered list of things that need to be accomplished:
 
 - Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
 
+- Calculate atmospheric scattering and use it to draw the atmosphere and fade out distant objects. CryEngine does this as a postprocessing effect based on the depth buffer. Maybe do that the same way?
+
+- Ocean shader. It should be possible to do this through some Perlin noise calculated in the shader, plus time to animate the waves. Maybe even wind directions can be used to decide where the waves move?
+
+- Use the earth coverage map from ? to decide what the general terrain type of a given location is. The original map is a 700MB TIFF, maybe this can either be compressed or the data may be transformed into some sort of indexed image.
+
+- Colorize earth either by using the earth texture from NASA's Blue Marble, or through some noise and coverage map.
+
 - Alter the elevation provider to refine the terrain in between data points. Maybe this should take place in another class, maybe `SceneryProvider` or the like. At a later stage, roads and land use data will affect the way how terrain is refined (roads require flat and gradual slopes, etc.).
 
 - Stream and cache OpenStreetMap data to display roads, cities and forests.
+
+- Add ground detail, like rocks, grass and fields. Anno 2070 uses some kind of vertex shader and Perlin noise to wiggle the trees in a wave-like motion to simulate slight winds.
+
+
+Future Stuff
+------------
+
+- SFML has builtin joystick support. Use that to simulate some simple airplane so we can fly around the terrain a bit to check whether it's convincing when viewed from the close air.
+- Add a car to drive around on the ground, especially drive on the roads to see if the terrain is convincing from very close.
+- Deferred Shading
+- Extend the G-buffer and add a screen space velocity vector for motion blurring.
+- Clouds
 
 
 Potential Issues
