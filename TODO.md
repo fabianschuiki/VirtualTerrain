@@ -3,18 +3,7 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Speed up `SphericalChunk` by, for each of the chunk's 4 corners, 4 side centers and center storing the sphere normal (`getNormal()`) at initialization and the elevation and surface normal at each detail update. This requires
-		struct Vertex {
-			vec3 unit;
-			vec3 normal;
-			double height;
-		};
-		struct Vertex corners[4];
-		struct Vertex sides[4];
-		struct Vertex center;
-	to be added to the `SphericalChunk` class. The actual *position* of a vertex may then be calculated through `v.unit * (planet->radius + v.height)`. Alternatively, the position might be precalculated and stored as `vec3 position` in the Vertex structure, trading performance for memory.
-
-- Check memory consumption of terrain. How much is it? >1GB?
+- Separate terrain LOD and frustum culling.
 
 - Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
 

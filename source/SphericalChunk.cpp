@@ -10,10 +10,21 @@
 #include "SphericalChunk.h"
 
 #define MIN_LEVEL 3
+#define TAU 2
+#define HYSTERESIS 0.5
 
 
-static const struct { double x; double y; } corners[4] = {{1,1}, {0,1}, {0,0}, {1,0}};
-static const struct { double x; double y; } sides[4] = {{0.5,1}, {0,0.5}, {0.5,0}, {1,0.5}};
+static const struct { double x; double y; } corner_coeffs[4] = {{1,1}, {0,1}, {0,0}, {1,0}};
+static const struct { double x; double y; } side_coeffs[4] = {{0.5,1}, {0,0.5}, {0.5,0}, {1,0.5}};
+
+
+inline static void glVertex_vec3(vec3 &v) { glVertex3f(v.x, v.y, v.z); }
+inline static void glNormal_vec3(vec3 &v) { glNormal3f(v.x, v.y, v.z); }
+inline static void drawVertex(SphericalChunk::Vertex &v)
+{
+	glNormal_vec3(v.normal);
+	glVertex_vec3(v.position);
+}
 
 
 SphericalChunk::SphericalChunk()
@@ -43,6 +54,23 @@ void SphericalChunk::init()
 	pc = (p0+p1)/2;
 	tc = (t0+t1)/2;
 	
+	//Calculate the spherical unit vectors for each point.
+	for (int i = 0; i < 4; i++) {
+		double cx = corner_coeffs[i].x;
+		double cy = corner_coeffs[i].y;
+		double sx = side_coeffs[i].x;
+		double sy = side_coeffs[i].y;
+		corners[i].unit = getNormal(cx,cy);
+		corners[i].tangent = getTangentPhi(cx,cy);
+		sides[i].unit = getNormal(sx,sy);
+		sides[i].tangent = getTangentPhi(sx,sy);
+		updateVertexNormalAndRadius(corners[i], cx, cy);
+		updateVertexNormalAndRadius(sides[i], sx, sy);
+	}
+	center.unit = getNormal(0.5, 0.5);
+	center.tangent = getTangentPhi(0.5, 0.5);
+	updateVertexNormalAndRadius(center, 0.5, 0.5);
+	
 	//Calculate the bounding box of the chunk.
 	boundingBox.x0 = INFINITY;
 	boundingBox.y0 = INFINITY;
@@ -51,7 +79,7 @@ void SphericalChunk::init()
 	boundingBox.y1 = -INFINITY;
 	boundingBox.z1 = -INFINITY;
 	for (int i = 0; i < 4; i++) {
-		vec3 v = getVertex(corners[i].x, corners[i].y);
+		vec3 &v = corners[i].position;
 		boundingBox.x0 = std::min<double>(boundingBox.x0, v.x);
 		boundingBox.y0 = std::min<double>(boundingBox.y0, v.y);
 		boundingBox.z0 = std::min<double>(boundingBox.z0, v.z);
@@ -60,28 +88,13 @@ void SphericalChunk::init()
 		boundingBox.z1 = std::max<double>(boundingBox.z1, v.z);
 	}
 	
-	
-	//static double thresh = pow(1e6, 2);
-	
+	//Activate the children up to the minimum required level of detail.
 	if (level <= MIN_LEVEL) {
 		activateChild(0);
 		activateChild(1);
 		activateChild(2);
 		activateChild(3);
-	}/* else {
-		//Activate children based on side width for debugging purposes.
-		vec3 corners[4] = {getVertex(1,0), getVertex(0,0), getVertex(0,1), getVertex(1,1)};
-		for (int i = 0; i < 4; i++) {
-			int next = (i < 3 ? i+1 : 0);
-			
-			double d = (corners[i] - corners[next]).length2();
-			//std::cout << " - " << i << ": d = " << d << std::endl;
-			if (d > thresh) {
-				activateChild(i);
-				activateChild(next);
-			}
-		}
-	}*/
+	}
 }
 
 void SphericalChunk::draw()
@@ -103,47 +116,40 @@ void SphericalChunk::draw()
 			glColor3f(1, 1, 1);
 		glBegin(GL_TRIANGLE_FAN);
 		
-		vec3 center   = getVertex(0.5, 0.5);
+		/*vec3 center   = getVertex(0.5, 0.5);
 		//vec3 center_n = getNormal(0.5, 0.5);
 		vec3 center_n = (getVertex(0,0) - getVertex(1,0)).cross(getVertex(0,0) - getVertex(0,1));
 		center_n.normalize();
 		glNormal3f(center_n.x, center_n.y, center_n.z);
-		glVertex3f(center.x, center.y, center.z);
+		glVertex3f(center.x, center.y, center.z);*/
+		
+		//Draw the center point.
+		drawVertex(center);
 		
 		//Loop through the quadrants.
 		for (int i = 0; i < 4; i++)
 		{
 			//Add the corner vertex if there is no explicit child for this quadrant.
 			if (!children[i]) {
-				vec3 corner   = getVertex(corners[i].x, corners[i].y);
-				vec3 corner_n = getNormal(corners[i].x, corners[i].y);
-				glNormal3f(center_n.x, center_n.y, center_n.z);
-				glVertex3f(corner.x, corner.y, corner.z);
+				drawVertex(corners[i]);
 			}
 			
 			//If the side is active, add the corresponding vertex.
 			if (activeSides[i]) {
-				vec3 side   = getVertex(sides[i].x, sides[i].y);
-				vec3 side_n = getVertex(sides[i].x, sides[i].y);
-				glNormal3f(center_n.x, center_n.y, center_n.z);
-				glVertex3f(side.x, side.y, side.z);
+				drawVertex(sides[i]);
 			}
 			
 			//If the next child exists, move back to the center to avoid drawing over it.
 			int next = (i < 3 ? i+1 : 0);
 			if (children[next]) {
-				glNormal3f(center_n.x, center_n.y, center_n.z);
-				glVertex3f(center.x, center.y, center.z);
+				drawVertex(center);
 			}
 			
 		}
 		
 		//Finish the last triangle.
 		if (!children[0]) {
-			vec3 corner   = getVertex(corners[0].x, corners[0].y);
-			vec3 corner_n = getNormal(corners[0].x, corners[0].y);
-			glNormal3f(center_n.x, center_n.y, center_n.z);
-			glVertex3f(corner.x, corner.y, corner.z);
+			drawVertex(corners[0]);
 		}
 		
 		glEnd();
@@ -159,7 +165,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 	//Calculate the five points of this chunk.
 	vec3 corner[4];
 	for (int i = 0; i < 4; i++) {
-		corner[i] = getVertex(corners[i].x, corners[i].y);
+		corner[i] = getVertex(corner_coeffs[i].x, corner_coeffs[i].y);
 	}
 	vec3 center = getVertex(0.5, 0.5);
 	
@@ -178,7 +184,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 	for (int i = 0; i < 4; i++)
 	{
 		//Calculate the actual and interpolated center of this child.
-		vec3 ca = getVertex((corners[i].x + 0.5) / 2, (corners[i].y + 0.5) / 2);
+		vec3 ca = getVertex((corner_coeffs[i].x + 0.5) / 2, (corner_coeffs[i].y + 0.5) / 2);
 		vec3 ci = (corner[i] + center) / 2;
 		
 		//Calculate the error in world space.
@@ -191,7 +197,8 @@ void SphericalChunk::updateDetail(Camera &camera)
 		//std::cout << "child " << i << ": err_world = " << err_world << ", err_screen = " << err_screen << std::endl;
 		
 		//Decide whether the child node is required based on the screen error.
-		bool required = (err_screen >= 2 || level <= MIN_LEVEL);
+		bool required = (err_screen > TAU * (1 + HYSTERESIS) || level <= MIN_LEVEL);
+		bool not_required = (err_screen < TAU / (1 + HYSTERESIS) && !required);
 		
 		//If the child is required but doesn't exist yet, create one.
 		if (required && !children[i]) {
@@ -199,7 +206,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		}
 		
 		//If the child is not required but does exist, remove it.
-		if (!required && children[i]) {
+		if (not_required && children[i]) {
 			deactivateChild(i);
 		}
 	}
@@ -220,8 +227,21 @@ vec3 SphericalChunk::getNormal(float x, float y)
 {
 	float p = (p0 + x*(p1-p0)) / 180 * M_PI;
 	float t = (t0 + y*(t1-t0)) / 180 * M_PI;
-	
 	return vec3(cos(t) * sin(p), sin(t), cos(t) * cos(p));
+}
+
+vec3 SphericalChunk::getTangentPhi(float x, float y)
+{
+	float p = (p0 + x*(p1-p0)) / 180 * M_PI;
+	float t = (t0 + y*(t1-t0)) / 180 * M_PI;
+	return vec3(cos(t) * cos(p), sin(t), cos(t) * -sin(p));
+}
+
+vec3 SphericalChunk::getTangentTheta(float x, float y)
+{
+	float p = (p0 + x*(p1-p0)) / 180 * M_PI;
+	float t = (t0 + y*(t1-t0)) / 180 * M_PI;
+	return vec3(-sin(t) * sin(p), cos(t), -sin(t) * cos(p));
 }
 
 
@@ -349,4 +369,18 @@ SphericalChunk* SphericalChunk::findAdjacentChunk(int side, bool create)
 	}
 	
 	return chunk;
+}
+
+
+/** Updates the given vertex's radius, normal and position based on the data of the planet's ele-
+ * vation provider. */
+void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
+{
+	double p = (p0 + x*(p1-p0));
+	double t = (t0 + y*(t1-t0));
+	v.radius = planet->elevation->getElevation(p, t) + planet->radius;
+	v.position = v.unit * v.radius;
+	
+	vec3 n = planet->elevation->getNormal(p, t, planet->radius);
+	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;
 }

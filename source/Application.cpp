@@ -126,14 +126,16 @@ int Application::run(int argc, char* argv[])
 	//std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
 	
 	//Dump the elevation data.
-	/*sf::Image elev, elev_norm;
-	elev.create(1440, 720, sf::Color::Black);
-	elev_norm.create(1440, 720, sf::Color::Black);
-	for (int y = 0; y < 720; y++) {
-		std::cout << "rendering elevation... " << (y * 100 / 720) << "%" << std::endl;
-		for (int x = 0; x < 1440; x++) {
-			double e = planet.elevation->getElevation(x / 4.0 - 180, y / 4.0 - 90) / 8e5;
-			vec3 n = planet.elevation->getNormal(x / 4.0 - 180, y / 4.0 - 90, planet.radius);
+	double ew = 2;
+	double eh = 2;
+	sf::Image elev, elev_norm;
+	elev.create(360*ew, 180*eh, sf::Color::Black);
+	elev_norm.create(360*ew, 180*eh, sf::Color::Black);
+	for (int y = 0; y < 180*eh; y++) {
+		std::cout << "rendering elevation... " << (y * 100 / 180 / eh) << "%" << std::endl;
+		for (int x = 0; x < 360*ew; x++) {
+			double e = planet.elevation->getElevation(x / ew - 180, y / eh - 90) / 8e4;
+			vec3 n = planet.elevation->getNormal(x / ew - 180, y / eh - 90, planet.radius);
 			
 			sf::Color c;
 			if (e < 0) {
@@ -159,7 +161,7 @@ int Application::run(int argc, char* argv[])
 		}
 	}
 	elev.saveToFile("elevation.png");
-	elev_norm.saveToFile("elevation_normals.png");*/
+	elev_norm.saveToFile("elevation_normals.png");
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();

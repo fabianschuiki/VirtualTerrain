@@ -9,8 +9,8 @@
 
 double PerlinElevation::getElevation(double x, double y)
 {
-	const static int octaves = 6;
-	const static double persistence = 0.5;
+	const static int octaves = 10;
+	const static double persistence = 0.75;
 	
 	double nx = x / 180;
 	double ny = y / 180;
@@ -26,7 +26,7 @@ double PerlinElevation::getElevation(double x, double y)
 	}
 	
 	//if (r < 0) r = 0;
-	return r * 8e5;
+	return r * 8e4;
 }
 
 vec3 PerlinElevation::getNormal(double x, double y, double r)
