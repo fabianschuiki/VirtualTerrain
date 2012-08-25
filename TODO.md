@@ -3,7 +3,9 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Separate terrain LOD and frustum culling.
+- Separate terrain LOD and frustum culling. Frustum culling needs to be updated whenever the camera moves/rotates. LOD only needs to be updated if the camera moves a certain amount.
+
+- In the `SphericalChunk::updateDetail` function, calculate the range of dot products between the surface normals of the children and the camera direction. Chunks that don't have any children use their four corner unit vectors for the dot product calculation; chunks that have children use the overall min/max of all their children. This allows chunks with a maximum dot product < 0 to be culled. This will avoid the problems with patches of the surface disappearing, since as long as there is some portion of the terrain facing the camera, the chunk is rendered.
 
 - Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
 
@@ -11,7 +13,7 @@ An ordered list of things that need to be accomplished:
 
 - Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land. This allows the use of different shaders, materials and textures for each.
 
-- Create a class that renders a certain range of the ElevationProvider data to a texture at various resolutions. This includes normals, color (from some source), and various attributes (specular intensity, etc.). This produces multiple textures which have to be stored in a separate structure, e.g. `BakedElevation`, which also keeps track what range the textures cover. Don't recalculate the textures too often.
+- Create a class that renders a certain range of the ElevationProvider data to a texture at various resolutions. This includes normals, color (from some source), and various attributes (specular intensity, etc.). This produces multiple textures which have to be stored in a separate structure, e.g. `BakedElevation` or `BakedScenery`, which also keeps track what range the textures cover. Don't recalculate the textures too often.
 
 - Use the baked elevation data to cover the terrain. Create one texture that covers all visible chunks as the least detailed resolution. Then use a maximum pixel error or the like to decide which range of the terrain to cover in a more detailed texture. Maybe even consider a dynamic number of textures. Use the coordinates stored within the baked texture to calculate texture coordinates, so it is possible to not update the texture every frame, but rather slowly.
 
@@ -42,6 +44,10 @@ An ordered list of things that need to be accomplished:
 - Use the earth coverage map from ? to decide what the general terrain type of a given location is. The original map is a 700MB TIFF, maybe this can either be compressed or the data may be transformed into some sort of indexed image.
 
 - Colorize earth either by using the earth texture from NASA's Blue Marble, or through some noise and coverage map.
+
+- If the camera is close enough to the ground, i.e. the earth's curvature becomes less and less visible, switch to a cartesian chunk system to faciliate adding ground details.
+
+- Once the camera moves very close to the ground, using the `BakedScenery` textures is not sufficient anymore, since the texture will change very frequently. Instead, when dropping to cartesian space, new ways of terrain rendering need to be devised. Maybe chunks grouped by material?
 
 - Alter the elevation provider to refine the terrain in between data points. Maybe this should take place in another class, maybe `SceneryProvider` or the like. At a later stage, roads and land use data will affect the way how terrain is refined (roads require flat and gradual slopes, etc.).
 
