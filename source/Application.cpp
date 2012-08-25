@@ -182,7 +182,7 @@ int Application::run(int argc, char* argv[])
 		vec3 cam_dir = cam.at - cam.pos;
 		cam_dir.normalize();
 		
-		double movement_speed = (std::max<double>(cam_height, 0) + 1e3) * 1e-8;
+		double movement_speed = (std::max<double>(cam_height, 0) + 1e4) * 1e-8;
 		
 		sf::Event event;
 		while (window.pollEvent(event)) {

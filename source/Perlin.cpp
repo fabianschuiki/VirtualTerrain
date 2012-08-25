@@ -18,9 +18,9 @@
 #define NM 0xfff
 
 static int p[B + B + 2];
-static float g3[B + B + 2][3];
-static float g2[B + B + 2][2];
-static float g1[B + B + 2];
+static double g3[B + B + 2][3];
+static double g2[B + B + 2][2];
+static double g1[B + B + 2];
 static bool start = 1;
 
 static void init(void);
@@ -36,10 +36,10 @@ b1 = (b0+1) & BM;\
 r0 = t - (int)t;\
 r1 = r0 - 1.;
 
-float Perlin::noise1(float x)
+double Perlin::noise1(double x)
 {
 	int bx0, bx1;
-	float rx0, rx1, sx, t, u, v;
+	double rx0, rx1, sx, t, u, v;
 	
 	if (start) {
 		start = 0;
@@ -56,10 +56,10 @@ float Perlin::noise1(float x)
 	return lerp(sx, u, v);
 }
 
-float Perlin::noise2(float x, float y)
+double Perlin::noise2(double x, double y)
 {
 	int bx0, bx1, by0, by1, b00, b10, b01, b11;
-	float rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
+	double rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
 	register int i, j;
 	
 	if (start) {
@@ -94,10 +94,10 @@ float Perlin::noise2(float x, float y)
 	return lerp(sy, a, b);
 }
 
-float Perlin::noise3(float x, float y, float z)
+double Perlin::noise3(double x, double y, double z)
 {
 	int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
-	float rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
+	double rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
 	register int i, j;
 	
 	if (start) {
@@ -146,18 +146,18 @@ float Perlin::noise3(float x, float y, float z)
 	return lerp(sz, c, d);
 }
 
-static void normalize2(float v[2])
+static void normalize2(double v[2])
 {
-	float s;
+	double s;
 	
 	s = sqrt(v[0] * v[0] + v[1] * v[1]);
 	v[0] = v[0] / s;
 	v[1] = v[1] / s;
 }
 
-static void normalize3(float v[3])
+static void normalize3(double v[3])
 {
-	float s;
+	double s;
 	
 	s = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	v[0] = v[0] / s;
@@ -172,14 +172,14 @@ static void init(void)
 	for (i = 0 ; i < B ; i++) {
 		p[i] = i;
 		
-		g1[i] = (float)((random() % (B + B)) - B) / B;
+		g1[i] = (double)((random() % (B + B)) - B) / B;
 		
 		for (j = 0 ; j < 2 ; j++)
-			g2[i][j] = (float)((random() % (B + B)) - B) / B;
+			g2[i][j] = (double)((random() % (B + B)) - B) / B;
 		normalize2(g2[i]);
 		
 		for (j = 0 ; j < 3 ; j++)
-			g3[i][j] = (float)((random() % (B + B)) - B) / B;
+			g3[i][j] = (double)((random() % (B + B)) - B) / B;
 		normalize3(g3[i]);
 	}
 	

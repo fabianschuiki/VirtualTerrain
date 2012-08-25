@@ -200,13 +200,13 @@ void SphericalChunk::updateDetail(Camera &camera)
 		
 		//If the child is not required but does exist, remove it.
 		if (!required && children[i]) {
-			deactivateChild(i);
+			//deactivateChild(i);
 		}
 	}
 	
 	//Perform the LOD on the children.
 	for (int i = 0; i < 4; i++)
-		if (children[i] && level < 16)
+		if (children[i] && level < 24)
 			children[i]->updateDetail(camera);
 }
 

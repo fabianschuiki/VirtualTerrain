@@ -8,7 +8,7 @@
 class Perlin
 {
 public:
-	static float noise1(float x);
-	static float noise2(float x, float y);
-	static float noise3(float x, float y, float z);
+	static double noise1(double x);
+	static double noise2(double x, double y);
+	static double noise3(double x, double y, double z);
 };
