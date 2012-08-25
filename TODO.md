@@ -3,8 +3,6 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Move the surface normal calculation to ElevationProvider by adding `getNormal(float x, float y)`. In the future DEM provider, this allows the normal to be calculated when the data is loaded, rather than recalculating it every time stuff is rendered.
-
 - Speed up `SphericalChunk` by, for each of the chunk's 4 corners, 4 side centers and center storing the sphere normal (`getNormal()`) at initialization and the elevation and surface normal at each detail update. This requires
 		struct Vertex {
 			vec3 unit;
