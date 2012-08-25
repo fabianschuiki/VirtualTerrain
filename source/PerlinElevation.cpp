@@ -31,10 +31,10 @@ double PerlinElevation::getElevation(double x, double y)
 
 vec3 PerlinElevation::getNormal(double x, double y, double r)
 {
-	static const double dx = 0.01;
+	static const double dx = 0.01 * cos(y / 180 * M_PI);
 	static const double dy = 0.01;
 	
-	double sx = dx / 180 * M_PI * cos(y / 180 * M_PI) * r;
+	double sx = dx / 180 * M_PI * r;
 	double sy = dy / 180 * M_PI * r;
 	
 	double h0 = getElevation(x,y);
