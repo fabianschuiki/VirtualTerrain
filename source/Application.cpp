@@ -187,7 +187,7 @@ int Application::run(int argc, char* argv[])
 		vec3 cam_dir = cam.at - cam.pos;
 		cam_dir.normalize();
 		
-		double movement_speed = (std::max<double>(cam_height, 0) + 1e4) * 1e-8;
+		double movement_speed = (std::max<double>(cam_height, 0) + 1e2);
 		
 		sf::Event event;
 		while (window.pollEvent(event)) {
@@ -216,23 +216,23 @@ int Application::run(int argc, char* argv[])
 					//case 'a': cam_roll += 0.05; break;
 						//case 'd': cam_roll -= 0.05; break;
 					case 'a': {
-						cam_p += -sin(cam_yaw) * movement_speed;
-						cam_t += cos(cam_yaw) * movement_speed;
+						cam_p += -sin(cam_yaw) * movement_speed / 44e6;
+						cam_t += cos(cam_yaw) * movement_speed / 44e6;
 					} break;
 					case 'd': {
-						cam_p -= -sin(cam_yaw) * movement_speed;
-						cam_t -= cos(cam_yaw) * movement_speed;
+						cam_p -= -sin(cam_yaw) * movement_speed / 44e6;
+						cam_t -= cos(cam_yaw) * movement_speed / 44e6;
 					} break;
 					case 'w': {
-						cam_p += cos(cam_yaw) * movement_speed;
-						cam_t += sin(cam_yaw) * movement_speed;
+						cam_p += cos(cam_yaw) * movement_speed / 44e6;
+						cam_t += sin(cam_yaw) * movement_speed / 44e6;
 					} break;
 					case 's': {
-						cam_p -= cos(cam_yaw) * movement_speed;
-						cam_t -= sin(cam_yaw) * movement_speed;
+						cam_p -= cos(cam_yaw) * movement_speed / 44e6;
+						cam_t -= sin(cam_yaw) * movement_speed / 44e6;
 					} break;
-					case 'r': cam_height *= 1.10; break;
-					case 'f': cam_height /= 1.10; break;
+					case 'r': cam_height += movement_speed * 1e-1; break;
+					case 'f': cam_height -= movement_speed * 1e-1; break;
 						
 					case '0': if (chk->parent) chk = chk->parent; break;
 					case '5': if (chk->children[0]) chk = chk->children[0]; break;
@@ -311,7 +311,7 @@ int Application::run(int argc, char* argv[])
 		cam.up.x = sin(cam_p) * cos(cam_t);
 		cam.up.y = sin(cam_t);
 		cam.up.z = cos(cam_p) * cos(cam_t);
-		cam.pos = cam.up * (planet.radius + cam_height);
+		cam.pos = cam.up * (planet.radius + cam_height + planet.elevation->getElevation(cam_p / M_PI * 180, cam_t / M_PI * 180));
 		
 		//Calculate the x and z coordinates of the camera space.
 		vec3 cam_x, cam_z;
