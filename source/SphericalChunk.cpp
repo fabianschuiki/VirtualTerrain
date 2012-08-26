@@ -307,7 +307,7 @@ void SphericalChunk::updateBakedScenery(Camera &camera)
 	double D = (center.position - camera.pos).length();
 	double section = (t1-t0) / 180 * M_PI * planet->radius;
 	double side = section / D * camera.K;
-	double dot = std::max(0.0, (camera.pos - center.position).unit().dot(center.normal));
+	double dot = std::max(0.0, (camera.pos - center.position).unit().dot(center.unit/*normal*/));
 	dot = dot / 2 + 0.5;
 	if (level <= MIN_LEVEL) dot = 1;
 	int res = pow(2, floor(log2(side * dot)));
@@ -370,7 +370,7 @@ void SphericalChunk::updateCulling(Camera &camera)
 			
 			dir = camera.pos - corners[i].position;
 			dir.normalize();
-			double dot2 = dir.dot(corners[i].normal);
+			double dot2 = dir.dot(corners[i].unit/*normal*/);
 			
 			double dot = std::max(dot1, dot2);
 			
@@ -557,8 +557,8 @@ void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
 	v.radius = std::max(0.0, planet->elevation->getElevation(p,t, detail)) + planet->radius;
 	v.position = v.unit * v.radius;
 	
-	vec3 n = planet->elevation->getNormal(p, t, planet->radius, 0.01);
-	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;
+	/*vec3 n = planet->elevation->getNormal(p, t, planet->radius, 0.01);
+	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;*/
 }
 
 void SphericalChunk::updateVertexTexture(Vertex &v, BakedScenery &baked)

@@ -33,8 +33,8 @@ double DEMElevation::getElevation(double x, double y, double detail)
 
 vec3 DEMElevation::getNormal(double x, double y, double r, double detail)
 {
-	/*static const double dx = detail * cos(y / 180 * M_PI);
-	static const double dy = detail;
+	static const double dx = detail;
+	static const double dy = detail / cos(y / 180 * M_PI);
 	
 	double sx = dx / 180 * M_PI * r;
 	double sy = dy / 180 * M_PI * r;
@@ -48,8 +48,8 @@ vec3 DEMElevation::getNormal(double x, double y, double r, double detail)
 	n.z = sx*(h0-hy);
 	n.y = sx*sy;
 	n.normalize();
-	return n;*/
-	return vec3(0,1,0);
+	return n;
+	//return vec3(0,1,0);
 }
 
 DEMElevation::Type DEMElevation::getType(double x, double y, double detail)

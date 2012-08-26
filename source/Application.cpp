@@ -190,6 +190,7 @@ int Application::run(int argc, char* argv[])
 		cam_dir.normalize();
 		
 		double movement_speed = (std::max<double>(cam_height, 0) + 1e2);
+		double prev_cam_height = cam_height;
 		
 		sf::Event event;
 		while (window.pollEvent(event)) {
@@ -286,6 +287,10 @@ int Application::run(int argc, char* argv[])
 		if (chk != prev_chk) {
 			prev_chk->highlighted = false;
 			chk->highlighted = true;
+		}
+		
+		if (prev_cam_height != cam_height) {
+			std::cout << "camera: " << cam_height << "m above ground" << std::endl;
 		}
 		
 		//Measure time.

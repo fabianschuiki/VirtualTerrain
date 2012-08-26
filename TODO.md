@@ -3,7 +3,7 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
+- Precalculate normals for the DEM data.
 
 - Make scenery baking have a resolution for each axis. Use dot product to reduce quality of bakings.
 

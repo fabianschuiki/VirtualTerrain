@@ -12,13 +12,13 @@
 
 void BakedScenery::bake()
 {
+	double detail = std::min((p1-p0)/resolution, (t1-t0)/resolution) * 0.01;
+	
 	assert(planet);
-	std::cout << "baking scenery [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "]" << std::endl;
+	std::cout << "baking scenery [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "] at " << detail << std::endl;
 	
 	GLubyte *pix_type = new GLubyte[resolution*resolution*3];
 	GLubyte *pix_normal = new GLubyte[resolution*resolution*3];
-	
-	double detail = std::min((p1-p0)/resolution, (t1-t0)/resolution);
 	
 	for (int y = 0; y < resolution; y++) {
 		for (int x = 0; x < resolution; x++) {

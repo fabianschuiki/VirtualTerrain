@@ -158,9 +158,24 @@ short DEMElevationData::getElevation(double x, double y, double detail)
 		r = &resolutions[res];
 	}
 	
-	int ix = fx * r->w;
-	int iy = fy * r->h;
-	return r->heights[(r->h - 1 - iy) * r->w + ix];
+	double ifx = fx * (r->w - 1);
+	double ify = fy * (r->h - 1);
+	int ix0 = floor(ifx);
+	int ix1 = ceil(ifx);
+	int iy0 = floor(ify);
+	int iy1 = ceil(ify);
+	double dx = ifx - ix0;
+	double dy = ify - iy0;
+	
+	short h00 = r->heights[(r->h-1-iy0)*r->w + ix0];
+	short h01 = r->heights[(r->h-1-iy1)*r->w + ix0];
+	short h10 = r->heights[(r->h-1-iy0)*r->w + ix1];
+	short h11 = r->heights[(r->h-1-iy1)*r->w + ix1];
+	
+	short h0 = (1-dy)*h00 + dy*h01;
+	short h1 = (1-dy)*h10 + dy*h11;
+	
+	return (1-dx)*h0 + dx*h1;
 }
 
 /*short DEMElevationData::sample(int x, int y)
