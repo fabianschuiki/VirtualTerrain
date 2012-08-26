@@ -192,6 +192,29 @@ void SphericalChunk::updateDetail(Camera &camera)
 {
 	if (culled_angle || culled_frustum) return;
 	
+	//Check whether we cover different types of terrain.
+	bool differentTypes = false;
+	for (int i = 0; i < 4; i++) {
+		double x = (corner_coeffs[i].x + 0.5) / 2;
+		double y = (corner_coeffs[i].y + 0.5) / 2;
+		if (planet->elevation->getType(p0 + (p1-p0)*x, t0 + (t1-t0)*y) != terrainType) {
+			differentTypes = true;
+			break;
+		}
+	}
+	
+	//If we cover different types of terrain, check whether the coastline detail is good enough.
+	bool increaseCoastline = false;
+	if (differentTypes) {
+		double distance2 = (center.position - camera.pos).length2();
+		double section = (t1-t0) / 180 * M_PI * planet->radius;
+		double section2 = section*section;
+		double pixels2 = section2 / distance2 * camera.K * camera.K;
+		
+		//Require a certain amount of coastline detail.
+		//increaseCoastline = (pixels2 > 10);
+	}
+	
 	//Perform the LOD decision for every child.
 	for (int i = 0; i < 4; i++)
 	{
@@ -209,7 +232,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		//std::cout << "child " << i << ": err_world = " << err_world << ", err_screen = " << err_screen << std::endl;
 		
 		//Decide whether the child node is required based on the screen error.
-		bool required = (err_screen > TAU * (1 + HYSTERESIS) || level <= MIN_LEVEL);
+		bool required = (err_screen > TAU * (1 + HYSTERESIS) || level <= MIN_LEVEL || increaseCoastline);
 		bool not_required = (err_screen < TAU / (1 + HYSTERESIS) && !required);
 		
 		//If the child is required but doesn't exist yet, create one.
@@ -219,7 +242,9 @@ void SphericalChunk::updateDetail(Camera &camera)
 		
 		//If the child is not required but does exist, remove it.
 		if (not_required && children[i]) {
-			deactivateChild(i);
+			SphericalChunk *c = children[i];
+			if (!c->children[0] && !c->children[1] && !c->children[2] && !c->children[3])
+				deactivateChild(i);
 		}
 	}
 	
