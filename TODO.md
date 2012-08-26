@@ -3,6 +3,10 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
+- Split the planet into chunks, e.g. 30x30, each of which has a baked planet texture whose resolution depends on the LOD of that chunk. The resolution should have a minimum and maximum pixel count, e.g. 128..1024.
+
+- Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
+
 - Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
 
 - Terrain tends to have too few details. This might be due to the recursive nature of `deactivateChild()` which has a potentially large area of effect. One approach would be to only deactivate children if the adjacent node exists and has the same amount of children.
@@ -30,8 +34,6 @@ An ordered list of things that need to be accomplished:
 - Move terrain detail update into a separate thread. Accomplish this by creating *TerrainLOD* jobs that perform the calculations.
 
 - Move the VBO compilation code into a separate thread. Accomplish this by creating *TerrainVBO* jobs that clear previous jobs of this type and depend on other terrain jobs to complete, e.g. *TerrainLOD*. This maps an OpenGL buffer, compiles the vertices into it, and unmaps the buffer (Might be impossible due to the thread unsafeness of OpenGL. Maybe move the buffer mapping to the main loop?).
-
-- Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
 
 - Calculate atmospheric scattering and use it to draw the atmosphere and fade out distant objects. CryEngine does this as a postprocessing effect based on the depth buffer. Maybe do that the same way?
 

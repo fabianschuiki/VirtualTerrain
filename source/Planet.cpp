@@ -61,8 +61,7 @@ void Planet::updateDetail(Camera &camera)
 	}
 	
 	//If the camera moved or rotated a minute amount, update the culling of the terrain.
-	if ((camera.pos - camera_pos_culling).length2() > 1e-6 ||
-		(camera.at - camera_at).length2() > 1e-6) {
+	if ((camera.pos - camera_pos_culling).length2() > 1e-6 || (camera.at - camera_at).length2() > 1e-6) {
 		camera_pos_culling = camera.pos;
 		camera_at = camera.at;
 		rootChunk.updateCulling(camera);
