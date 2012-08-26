@@ -15,7 +15,7 @@ public:
 		kLand,
 	};
 	
-	virtual double getElevation(double x, double y) = 0;
+	virtual double getElevation(double x, double y, double detail) = 0;
 	virtual vec3 getNormal(double x, double y, double r, double detail) = 0;
-	virtual Type getType(double x, double y) = 0;
+	virtual Type getType(double x, double y, double detail) = 0;
 };

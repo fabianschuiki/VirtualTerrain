@@ -57,6 +57,7 @@ void SphericalChunk::init()
 	//Calculate the phi and theta of the center point.
 	pc = (p0+p1)/2;
 	tc = (t0+t1)/2;
+	detail = std::min((p1-p0)/2, (t1-t0)/2);
 	
 	//Calculate the spherical unit vectors for each point.
 	for (int i = 0; i < 4; i++) {
@@ -74,7 +75,7 @@ void SphericalChunk::init()
 	center.unit = getNormal(0.5, 0.5);
 	center.tangent = getTangentPhi(0.5, 0.5);
 	updateVertexNormalAndRadius(center, 0.5, 0.5);
-	terrainType = planet->elevation->getType(pc,tc);
+	terrainType = planet->elevation->getType(pc,tc, detail);
 	
 	//Calculate the bounding box of the chunk.
 	boundingBox.x0 = INFINITY;
@@ -233,7 +234,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 	for (int i = 0; i < 4; i++) {
 		double x = (corner_coeffs[i].x + 0.5) / 2;
 		double y = (corner_coeffs[i].y + 0.5) / 2;
-		if (planet->elevation->getType(p0 + (p1-p0)*x, t0 + (t1-t0)*y) != terrainType) {
+		if (planet->elevation->getType(p0 + (p1-p0)*x, t0 + (t1-t0)*y, detail/2) != terrainType) {
 			differentTypes = true;
 			break;
 		}
@@ -255,7 +256,12 @@ void SphericalChunk::updateDetail(Camera &camera)
 	for (int i = 0; i < 4; i++)
 	{
 		//Calculate the actual and interpolated center of this child.
-		vec3 ca = getVertex((corner_coeffs[i].x + 0.5) / 2, (corner_coeffs[i].y + 0.5) / 2);
+		Vertex v;
+		double cx = (corner_coeffs[i].x + 0.5) / 2;
+		double cy = (corner_coeffs[i].y + 0.5) / 2;
+		v.unit = getNormal(cx,cy);
+		updateVertexNormalAndRadius(v, cx, cy);
+		vec3 ca = v.position;
 		vec3 ci = (corners[i].position + center.position) / 2;
 		
 		//Calculate the error in world space.
@@ -309,7 +315,7 @@ void SphericalChunk::updateBakedScenery(Camera &camera)
 	//Bake the scenery if required.
 	bool bakeScenery = (level < 24 && !culled_frustum && !culled_angle);
 	if (bakeScenery)
-		bakeScenery = (level % 4 == 0) && (res >= (baked ? 64 : 256) || level == 0);
+		bakeScenery = (level % 2 == 0) && (res >= (baked ? 128 : 256) || level == 0);
 	res = 256;
 	
 	if (!bakeScenery && baked) {
@@ -386,10 +392,10 @@ void SphericalChunk::updateCulling(Camera &camera)
 }
 
 
-vec3 SphericalChunk::getVertex(float x, float y)
+/*vec3 SphericalChunk::getVertex(float x, float y)
 {
 	return getNormal(x, y) * (planet->radius + std::max(0.0, planet->elevation->getElevation(p0 + (p1-p0)*x, t0 + (t1-t0)*y)));
-}
+}*/
 
 vec3 SphericalChunk::getNormal(float x, float y)
 {
@@ -548,7 +554,7 @@ void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
 	double t = (t0 + y*(t1-t0));
 	v.p = p;
 	v.t = t;
-	v.radius = std::max(0.0, planet->elevation->getElevation(p, t)) + planet->radius;
+	v.radius = std::max(0.0, planet->elevation->getElevation(p,t, detail)) + planet->radius;
 	v.position = v.unit * v.radius;
 	
 	vec3 n = planet->elevation->getNormal(p, t, planet->radius, 0.01);

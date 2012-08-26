@@ -7,7 +7,7 @@
 #include "PerlinElevation.h"
 
 
-double PerlinElevation::getElevation(double x, double y)
+double PerlinElevation::getElevation(double x, double y, double detail)
 {
 	const static int octaves = 16;
 	const static double persistence = 0.65;
@@ -37,9 +37,9 @@ vec3 PerlinElevation::getNormal(double x, double y, double r, double detail)
 	double sx = dx / 180 * M_PI * r;
 	double sy = dy / 180 * M_PI * r;
 	
-	double h0 = getElevation(x,y);
-	double hx = getElevation(x+dx,y);
-	double hy = getElevation(x,y+dy);
+	double h0 = getElevation(x,y, detail);
+	double hx = getElevation(x+dx,y, detail);
+	double hy = getElevation(x,y+dy, detail);
 	
 	vec3 n;
 	n.x = sy*(h0-hx);
@@ -49,8 +49,8 @@ vec3 PerlinElevation::getNormal(double x, double y, double r, double detail)
 	return n;
 }
 
-PerlinElevation::Type PerlinElevation::getType(double x, double y)
+PerlinElevation::Type PerlinElevation::getType(double x, double y, double detail)
 {
-	double e = getElevation(x, y);
+	double e = getElevation(x, y, detail);
 	return (e <= 0 ? kOcean : kLand);
 }

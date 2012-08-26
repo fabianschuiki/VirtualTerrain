@@ -20,6 +20,7 @@ public:
 	
 	float p0, p1; //rotation phi (0 = Greenwich)
 	float t0, t1; //inclination theta (0 = equator)
+	double detail; //what angular resolution this chunk is able to provide
 	
 	float pc, tc;
 	
@@ -62,7 +63,7 @@ public:
 	void updateCulling(Camera &camera);
 	void updateBakedScenery(Camera &camera);
 	
-	vec3 getVertex(float x, float y);
+	//vec3 getVertex(float x, float y);
 	vec3 getNormal(float x, float y);
 	vec3 getTangentPhi(float x, float y);
 	vec3 getTangentTheta(float x, float y);

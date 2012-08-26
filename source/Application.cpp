@@ -313,7 +313,7 @@ int Application::run(int argc, char* argv[])
 		cam.up.x = sin(cam_p) * cos(cam_t);
 		cam.up.y = sin(cam_t);
 		cam.up.z = cos(cam_p) * cos(cam_t);
-		cam.pos = cam.up * (planet.radius + cam_height + planet.elevation->getElevation(cam_p / M_PI * 180, cam_t / M_PI * 180));
+		cam.pos = cam.up * (planet.radius + cam_height + planet.elevation->getElevation(cam_p / M_PI * 180, cam_t / M_PI * 180, 0.1));
 		
 		//Calculate the x and z coordinates of the camera space.
 		vec3 cam_x, cam_z;

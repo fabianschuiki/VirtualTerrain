@@ -38,15 +38,24 @@ void BakedScenery::bake()
 				pix_type[k+2] = 0;
 			}*/
 			
-			double e = planet->elevation->getElevation(p,t);
+			double e = planet->elevation->getElevation(p,t, detail);
 			if (e <= 0) {
 				pix_type[k+0] = 0;
 				pix_type[k+1] = (1 / (1-e/1e3)) * 255;
 				pix_type[k+2] = 1 * 255;
 			} else {
-				pix_type[k+0] = 1 / (1 + e/1000) * 255;
-				pix_type[k+1] = (1.0 - e / 8e3 / 2) * 255;
-				pix_type[k+2] = 0;
+				if (e > 2000) {
+					pix_type[k+0] = 255;
+					pix_type[k+1] = 255;
+					pix_type[k+2] = 255;
+				} else {
+					/*pix_type[k+0] = 1 / (1 + e/100) * 255;
+					pix_type[k+1] = (1.0 - e / 8e3 / 2) * 255;
+					 pix_type[k+2] = 0;*/
+					pix_type[k+0] = 0;
+					pix_type[k+1] = (0.7 + 0.3 / (1 + e/100)) * 255;
+					pix_type[k+2] = 0;
+				}
 			}
 			
 			vec3 n = planet->elevation->getNormal(p,t, planet->radius, detail);

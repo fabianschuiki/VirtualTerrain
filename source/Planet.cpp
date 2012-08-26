@@ -4,13 +4,13 @@
 
 #include <iostream>
 #include "Planet.h"
-#include "PerlinElevation.h"
+#include "DEMElevation.h"
 
 
 Planet::Planet() : radius(6.371e6)
 {
 	//Initialize some elevation provider.
-	elevation = new PerlinElevation;
+	elevation = new DEMElevation;
 	
 	//Initialize the root chunk which covers the entire planet.
 	rootChunk.planet = this;
