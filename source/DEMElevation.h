@@ -17,7 +17,7 @@ public:
 	~DEMElevation();
 	
 	virtual double getElevation(double x, double y, double detail);
-	virtual vec3 getNormal(double x, double y, double r, double detail);
+	virtual vec3 getNormal(double x, double y, double detail);
 	virtual Type getType(double x, double y, double detail);
 	
 private:

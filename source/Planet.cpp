@@ -11,6 +11,7 @@ Planet::Planet() : radius(6.371e6)
 {
 	//Initialize some elevation provider.
 	elevation = new DEMElevation;
+	elevation->planet = this;
 	
 	//Initialize the root chunk which covers the entire planet.
 	rootChunk.planet = this;

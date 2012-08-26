@@ -19,7 +19,7 @@ public:
 		short w, h;
 		int hits;
 		short *heights;
-		vec3 *normals;
+		char *normals;
 	};
 	
 	Resolution *resolutions;
@@ -30,5 +30,9 @@ public:
 	void load(int resolution);
 	void unload(int resolution);
 	
-	short getElevation(double x, double y, double detail);
+	double getElevation(double x, double y, double detail);
+	vec3 getNormal(double x, double y, double detail);
+	
+private:
+	Resolution* chooseResolution(double detail);
 };

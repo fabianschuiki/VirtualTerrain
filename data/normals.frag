@@ -17,6 +17,7 @@ void main() {
 	
 	//calculate the final color
 	gl_FragColor = texture2D(tex_color, gl_TexCoord[0].st);
-	gl_FragColor.xyz *= diffuse * 0.7 + 0.3;
-	gl_FragColor.xyz += specular * vec3(0.5);
+	gl_FragColor.xyz *= diffuse * 0.9 + 0.1;
+	gl_FragColor.xyz += specular * vec3(0.75);
+	//gl_FragColor.xyz = pN/2.0 + 0.5;
 }

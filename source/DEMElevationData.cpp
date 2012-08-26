@@ -3,10 +3,13 @@
  */
 
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
+#include "DEMElevation.h"
 #include "DEMElevationData.h"
+#include "Planet.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -53,19 +56,18 @@ void DEMElevationData::load(int resolution)
 			 (ix < 0 ? 'W' : 'E'), abs(ix),
 			 (iy < 0 ? 'S' : 'N'), abs(iy));
 	
+	//Create the cache directory if required.
+	const char *cache_dir = "/tmp/VirtualTerrain";
+	mkdir(cache_dir, 0777);
+	
+	//Create the cache directory for these resolutions if required.
+	char resolution_dir[512];
+	snprintf(resolution_dir, 512, "%s/DEM%i", cache_dir, resolution);
+	mkdir(resolution_dir, 0777);
+	
 	//Decide where to grab the data from.
 	char path[512];
 	if (resolution > 0) {
-		//Create the cache directory if required.
-		const char *cache_dir = "/tmp/VirtualTerrain";
-		mkdir(cache_dir, 0777);
-		
-		//Create the cache directory for these resolutions if required.
-		char resolution_dir[512];
-		snprintf(resolution_dir, 512, "%s/DEM%i", cache_dir, resolution);
-		mkdir(resolution_dir, 0777);
-		
-		//Assemble the path of the cache for this slice.
 		snprintf(path, 512, "%s/%s", resolution_dir, filename);
 	} else {
 		snprintf(path, 512, "/usr/local/share/VirtualTerrain/%s", filename);
@@ -125,38 +127,71 @@ void DEMElevationData::load(int resolution)
 	
 	//Make sure that any heights were loaded.
 	assert(r.heights);
+	
+	
+	//Decide where the normals are cached.
+	char normals_path[512];
+	snprintf(normals_path, 512, "%s/normals_%s", resolution_dir, filename);
+	
+	//Try to load the normals from cache.
+	assert(!r.normals);
+	r.normals = new char[(int)r.w * r.h * 2];
+	ifstream normals_input(normals_path);
+	
+	//Read the normals if the cache is valid.
+	if (normals_input.good()) {
+		normals_input.read(r.normals, (int)r.w * r.h * 2);
+		normals_input.close();
+	}
+	
+	//Oterhwise calculate the normals.
+	else {
+		std::cout << "rendering normals cache {" << x << "," << y << "} at " << resolution << std::endl;
+		
+		for (int y = 0; y < r.h; y++) {
+			for (int x = 0; x < r.w; x++) {
+				double dx = 40.0 / r.w * cos(((this->y - (double)y / r.h) * 50 - 10) / 180 * M_PI);
+				double dy = 50.0 / r.h;
+				
+				double sx = dx / 180 * M_PI * container->planet->radius * 0.5;
+				double sy = dy / 180 * M_PI * container->planet->radius * 0.5;
+				
+				int xp = std::min(x+1, (int)r.w - 1);
+				int yp = std::min(y+1, (int)r.h - 1);
+				
+				short h0 = r.heights[y * r.w + x];
+				short hx = r.heights[y * r.w + xp];
+				short hy = r.heights[yp * r.w + x];
+				
+				char *n = &r.normals[(y * r.w + x) * 2];
+				double nx = sy * (h0 - hx);
+				double nz = sx * (h0 - hy);
+				double ny = sx * sy;
+				double f = 127.0 / sqrt(nx*nx + ny*ny + nz*nz);
+				n[0] = nx * f;
+				n[1] = nz * f;
+			}
+		}
+		
+		//Store the normals cache.
+		ofstream output(normals_path);
+		output.write(r.normals, (int)r.w * r.h * 2);
+		output.close();
+	}
+	
+	//Make sure that normals were loaded.
+	assert(r.normals);
 }
 
 void DEMElevationData::unload(int resolution)
 {
 }
 
-short DEMElevationData::getElevation(double x, double y, double detail)
+double DEMElevationData::getElevation(double x, double y, double detail)
 {
 	double fx = fmod((x + 200 + 20) / 40, 1);
 	double fy = fmod((y + 100 + 60) / 50, 1);
-	
-	int res = log2(detail * 120); //since the DEM data is 6000 pixels / 50°
-	if (res >= NUM_RES) res = NUM_RES - 1;
-	if (res < 0) res = 0;
-	
-	//Mark a hit at this resolution.
-	resolutions[res].hits++;
-	
-	//Find the closest resolution that has data available.
-	Resolution *r = NULL;
-	for (int i = res; i >= 0; i--) {
-		if (resolutions[i].heights) {
-			r = &resolutions[i];
-			break;
-		}
-	}
-	
-	//If the no resolution is available, load the appropriate one from the disk.
-	if (!r) {
-		load(res);
-		r = &resolutions[res];
-	}
+	Resolution *r = chooseResolution(detail);
 	
 	double ifx = fx * (r->w - 1);
 	double ify = fy * (r->h - 1);
@@ -167,29 +202,65 @@ short DEMElevationData::getElevation(double x, double y, double detail)
 	double dx = ifx - ix0;
 	double dy = ify - iy0;
 	
-	short h00 = r->heights[(r->h-1-iy0)*r->w + ix0];
-	short h01 = r->heights[(r->h-1-iy1)*r->w + ix0];
-	short h10 = r->heights[(r->h-1-iy0)*r->w + ix1];
-	short h11 = r->heights[(r->h-1-iy1)*r->w + ix1];
+	double h00 = r->heights[(r->h-1-iy0)*r->w + ix0];
+	double h01 = r->heights[(r->h-1-iy1)*r->w + ix0];
+	double h10 = r->heights[(r->h-1-iy0)*r->w + ix1];
+	double h11 = r->heights[(r->h-1-iy1)*r->w + ix1];
 	
-	short h0 = (1-dy)*h00 + dy*h01;
-	short h1 = (1-dy)*h10 + dy*h11;
+	double h0 = (1-dy)*h00 + dy*h01;
+	double h1 = (1-dy)*h10 + dy*h11;
 	
 	return (1-dx)*h0 + dx*h1;
 }
 
-/*short DEMElevationData::sample(int x, int y)
+vec3 DEMElevationData::getNormal(double x, double y, double detail)
 {
-	if (!data)
-		return 0;
+	double fx = fmod((x + 200 + 20) / 40, 1);
+	double fy = fmod((y + 100 + 60) / 50, 1);
+	Resolution *r = chooseResolution(detail);
 	
-	int tx = x >> resolution;
-	int ty = y >> resolution;
+	double ifx = fx * (r->w - 1);
+	double ify = fy * (r->h - 1);
+	int ix0 = floor(ifx);
+	int ix1 = ceil(ifx);
+	int iy0 = floor(ify);
+	int iy1 = ceil(ify);
+	double dx = ifx - ix0;
+	double dy = ify - iy0;
 	
-	if (tx < 0) return 0;
-	if (tx >= 4800 >> resolution) return 0;
-	if (ty < 0) return 0;
-	if (ty >= 6000 >> resolution) return 0;
+	char *n00 = &r->normals[((r->h-1-iy0)*r->w + ix0) * 2];
+	char *n01 = &r->normals[((r->h-1-iy1)*r->w + ix0) * 2];
+	char *n10 = &r->normals[((r->h-1-iy0)*r->w + ix1) * 2];
+	char *n11 = &r->normals[((r->h-1-iy1)*r->w + ix1) * 2];
 	
-	return data[ty * (4800 >> resolution) + tx];
-}*/
+	char n[2];
+	for (int i = 0; i < 2; i++) {
+		char n0 = n00[i]*(1-dy) + n01[i]*dy;
+		char n1 = n10[i]*(1-dy) + n11[i]*dy;
+		n[i] = n0*(1-dx) + n1*dx;
+	}
+	
+	double nx = n[0] / 127.0;
+	double ny = n[1] / 127.0;
+	return vec3(nx, sqrt(1 - nx*nx - ny*ny), ny);
+}
+
+DEMElevationData::Resolution* DEMElevationData::chooseResolution(double detail)
+{
+	
+	int res = log2(detail * 120); //since the DEM data is 6000 pixels / 50°
+	if (res >= NUM_RES) res = NUM_RES - 1;
+	if (res < 0) res = 0;
+	
+	//Mark a hit at this resolution.
+	resolutions[res].hits++;
+	
+	//Find the closest resolution that has data available.
+	for (int i = res; i >= 0; i--)
+		if (resolutions[i].heights)
+			return &resolutions[i];
+	
+	//If the no resolution is available, load the appropriate one from the disk.
+	load(res);
+	return &resolutions[res];
+}

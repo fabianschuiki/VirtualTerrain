@@ -12,7 +12,7 @@
 
 void BakedScenery::bake()
 {
-	double detail = std::min((p1-p0)/resolution, (t1-t0)/resolution) * 0.01;
+	double detail = std::min((p1-p0)/resolution, (t1-t0)/resolution);
 	
 	assert(planet);
 	std::cout << "baking scenery [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "] at " << detail << std::endl;
@@ -58,7 +58,7 @@ void BakedScenery::bake()
 				}
 			}
 			
-			vec3 n = planet->elevation->getNormal(p,t, planet->radius, detail);
+			vec3 n = planet->elevation->getNormal(p,t, detail);
 			pix_normal[k+0] = 255 * (n.x + 1) / 2;
 			pix_normal[k+1] = 255 * (n.y + 1) / 2;
 			pix_normal[k+2] = 255 * (n.z + 1) / 2;

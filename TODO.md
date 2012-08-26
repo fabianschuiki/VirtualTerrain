@@ -3,7 +3,9 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Precalculate normals for the DEM data.
+- Recalculate vertex radii in SphericalChunk when the detail is updated. Not doing so will cause cracks due to the different levels of detail of paren/child nodes.
+
+- Load Blue Marble image from NASA to colorize earth from space. This will need another caching mechanism, since the whole texture is rather big (raw ~10GB). Maybe chunk the image into ~50MB pieces, e.g. 10x10 degrees at different resolutions.
 
 - Make scenery baking have a resolution for each axis. Use dot product to reduce quality of bakings.
 
@@ -64,6 +66,12 @@ Future Stuff
 - Deferred Shading
 - Extend the G-buffer and add a screen space velocity vector for motion blurring.
 - Clouds
+
+
+Resources
+---------
+
+- [http://www.naturalearth.com]
 
 
 Potential Issues

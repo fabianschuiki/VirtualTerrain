@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include "DEMElevation.h"
+#include "Planet.h"
 
 
 DEMElevation::DEMElevation()
@@ -31,13 +32,13 @@ double DEMElevation::getElevation(double x, double y, double detail)
 	return data->getElevation(x, y, detail);
 }
 
-vec3 DEMElevation::getNormal(double x, double y, double r, double detail)
+vec3 DEMElevation::getNormal(double x, double y, double detail)
 {
-	static const double dx = detail;
+	/*static const double dx = detail;
 	static const double dy = detail / cos(y / 180 * M_PI);
 	
-	double sx = dx / 180 * M_PI * r;
-	double sy = dy / 180 * M_PI * r;
+	double sx = dx / 180 * M_PI * planet->radius;
+	double sy = dy / 180 * M_PI * planet->radius;
 	
 	double h0 = getElevation(x,y, detail);
 	double hx = getElevation(x+dx,y, detail);
@@ -48,8 +49,12 @@ vec3 DEMElevation::getNormal(double x, double y, double r, double detail)
 	n.z = sx*(h0-hy);
 	n.y = sx*sy;
 	n.normalize();
-	return n;
+	return n;*/
 	//return vec3(0,1,0);
+	
+	DEMElevationData *data = getSlice(x,y);
+	if (!data) return vec3(0,1,0);
+	return data->getNormal(x, y, detail);
 }
 
 DEMElevation::Type DEMElevation::getType(double x, double y, double detail)
