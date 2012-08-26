@@ -70,6 +70,7 @@ void SphericalChunk::init()
 	center.unit = getNormal(0.5, 0.5);
 	center.tangent = getTangentPhi(0.5, 0.5);
 	updateVertexNormalAndRadius(center, 0.5, 0.5);
+	terrainType = planet->elevation->getType(pc,tc);
 	
 	//Calculate the bounding box of the chunk.
 	boundingBox.x0 = INFINITY;
@@ -115,7 +116,7 @@ void SphericalChunk::draw()
 		else {
 			//glColor3f(1, 1, 1);
 			
-			double H = 90 - 90.0 * (1 / (1 + std::max(0, level - MIN_LEVEL) * 0.5));
+			/*double H = 90 - 90.0 * (1 / (1 + std::max(0, level - MIN_LEVEL) * 0.5));
 			double S = 1;
 			double V = 1;
 			
@@ -134,6 +135,11 @@ void SphericalChunk::draw()
 				case 3: glColor3f(p,q,V); break;
 				case 4: glColor3f(t,p,V); break;
 				case 5: glColor3f(V,p,q); break;
+			}*/
+			
+			switch (terrainType) {
+				case ElevationProvider::kOcean: glColor3f(0, 0.25, 0.5); break;
+				case ElevationProvider::kLand:  glColor3f(0, 0.5, 0); break;
 			}
 		}
 		glBegin(GL_TRIANGLE_FAN);

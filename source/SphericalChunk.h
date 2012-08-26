@@ -6,6 +6,7 @@
 
 #include "AABox.h"
 #include "Camera.h"
+#include "ElevationProvider.h"
 #include "Vector.h"
 
 class Planet;
@@ -43,6 +44,8 @@ public:
 	bool culled_frustum, culled_angle;
 	AABox boundingBox;
 	double minDot, maxDot;
+	
+	ElevationProvider::Type terrainType;
 	
 	SphericalChunk();
 	~SphericalChunk();
