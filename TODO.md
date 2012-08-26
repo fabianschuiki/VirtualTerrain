@@ -5,6 +5,8 @@ An ordered list of things that need to be accomplished:
 
 - Move scenery baking to SphericalChunk and fix the baking size to 256 or similar. Then change the detail generation code to generate additional levels of detail until the chunk pixel side length drops below the baking size. Limit the baking to not go below a certain level. This should give some quite nice detail textures, but might be slow without the JobQueue.
 
+- Make scenery baking have a resolution for each axis. Use dot product to reduce quality of bakings.
+
 - Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
 
 - Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?

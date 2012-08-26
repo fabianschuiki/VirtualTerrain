@@ -254,7 +254,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		vec3 ci = (corners[i].position + center.position) / 2;
 		
 		//Calculate the error in world space.
-		double err_world = /*(ca-ci).length()*/ (t1-t0) / 180 * M_PI * planet->radius / 25;
+		double err_world = /*(ca-ci).length()*/ (t1-t0) / 180 * M_PI * planet->radius / 50;
 		
 		//Calculate the error in screen space.
 		double D = (ci - camera.pos).length();
@@ -314,8 +314,9 @@ void SphericalChunk::updateBakedScenery(Camera &camera)
 		//D *= 1 + 1e-6*D;
 		double section = (t1-t0) / 180 * M_PI * planet->radius;
 		double side = section / D * camera.K;
-		int res = pow(2, floor(log2(side))) / 4;
-		if (res < 1) res = 1;
+		double dot = std::max(0.1, (camera.pos - center.position).unit().dot(center.normal));
+		int res = pow(2, floor(log2(side * dot)));
+		if (res < 8) res = 8;
 		if (res > 128) res = 128;
 		if (res != prev_res) {
 			std::cout << "baking at " << res << ", side = " << side << ", section = " << section << std::endl;
