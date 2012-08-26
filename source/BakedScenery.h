@@ -16,6 +16,7 @@ public:
 	
 	double p0, p1;
 	double t0, t1;
+	int resolution;
 	
 	Texture tex_type; //terrain type
 	

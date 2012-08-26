@@ -103,12 +103,18 @@ void SphericalChunk::draw()
 {
 	if (culled_frustum || culled_angle) return;
 	
+	//Select the appropriate baked texture.
+	int btx = floor(pc / 30 + 6);
+	int bty = floor(tc / 30 + 3);
+	BakedScenery &baked = planet->bakedChunks[btx][bty];
+	baked.tex_type.bind();
+	
 	//Update the vertice's texture coordinates.
 	for (int i = 0; i < 4; i++) {
-		updateVertexTexture(corners[i]);
-		updateVertexTexture(sides[i]);
+		updateVertexTexture(corners[i], baked);
+		updateVertexTexture(sides[i], baked);
 	}
-	updateVertexTexture(center);
+	updateVertexTexture(center, baked);
 	
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
@@ -149,7 +155,7 @@ void SphericalChunk::draw()
 				case ElevationProvider::kOcean: glColor3f(0, 0.25, 0.5); break;
 				case ElevationProvider::kLand:  glColor3f(0, 0.5, 0); break;
 			}*/
-			BakedScenery &b = planet->baked;
+			//BakedScenery &b = planet->baked;
 			/*if (pc >= b.p0 && pc <= b.p1 && tc >= b.t0 && tc <= b.t1) {
 				glColor3f(0, 1, 0);
 			} else {
@@ -491,10 +497,8 @@ void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
 	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;
 }
 
-void SphericalChunk::updateVertexTexture(Vertex &v)
+void SphericalChunk::updateVertexTexture(Vertex &v, BakedScenery &baked)
 {
-	BakedScenery &baked = planet->baked;
-	
 	double s = (v.p - baked.p0) / (baked.p1 - baked.p0);
 	double t = (v.t - baked.t0) / (baked.t1 - baked.t0);
 	

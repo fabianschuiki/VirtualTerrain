@@ -3,7 +3,7 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Split the planet into chunks, e.g. 30x30, each of which has a baked planet texture whose resolution depends on the LOD of that chunk. The resolution should have a minimum and maximum pixel count, e.g. 128..1024.
+- Move scenery baking to SphericalChunk and fix the baking size to 256 or similar. Then change the detail generation code to generate additional levels of detail until the chunk pixel side length drops below the baking size. Limit the baking to not go below a certain level. This should give some quite nice detail textures, but might be slow without the JobQueue.
 
 - Create a new ElevationProvider that uses the DEM data of earth for rendering. Maybe some caching is required (data > 2GB). On modern hard drives reading continuous data is about 250 MB/s, which would "only" take 8s for the entire earth at max detail.
 

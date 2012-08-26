@@ -18,7 +18,7 @@ public:
 	vec3 camera_pos_detail, camera_pos_culling, camera_at;
 	SphericalChunk rootChunk;
 	ElevationProvider *elevation;
-	BakedScenery baked;
+	BakedScenery bakedChunks[12][6];
 	
 	Planet();
 	~Planet();

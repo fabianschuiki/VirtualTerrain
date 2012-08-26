@@ -5,6 +5,7 @@
 #pragma once
 
 #include "AABox.h"
+#include "BakedScenery.h"
 #include "Camera.h"
 #include "ElevationProvider.h"
 #include "Vector.h"
@@ -70,5 +71,5 @@ public:
 	
 private:
 	void updateVertexNormalAndRadius(Vertex &v, double x, double y);
-	void updateVertexTexture(Vertex &v);
+	void updateVertexTexture(Vertex &v, BakedScenery &baked);
 };

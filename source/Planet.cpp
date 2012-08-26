@@ -20,13 +20,27 @@ Planet::Planet() : radius(6.371e6)
 	rootChunk.t1 = 90;
 	rootChunk.init();
 	
-	//Initialize some basic form of baked scenery.
+	//Initialize the baked scenery chunks.
+	for (int y = -3; y < 3; y++) {
+		for (int x = -6; x < 6; x++) {
+			BakedScenery &b = bakedChunks[x+6][y+3];
+			b.planet = this;
+			b.p0 = x * 30;
+			b.p1 = (x+1) * 30;
+			b.t0 = y * 30;
+			b.t1 = (y+1) * 30;
+			b.resolution = 256;
+			b.bake();
+		}
+	}
+	
+	/*//Initialize some basic form of baked scenery.
 	baked.planet = this;
 	baked.p0 = -50;
 	baked.p1 = 50;
 	baked.t0 = -50;
 	baked.t1 = 50;
-	baked.bake();
+	baked.bake();*/
 }
 
 Planet::~Planet()
@@ -49,7 +63,7 @@ void Planet::updateDetail(Camera &camera)
 		rootChunk.updateDetail(camera);
 		
 		//Some crappy texture baking.
-		double delta = 0.5 * (camera.pos.length() / radius - 1) / M_PI * 180;
+		/*double delta = 0.5 * (camera.pos.length() / radius - 1) / M_PI * 180;
 		if (delta > 90) delta = 90;
 		double camp = atan2(camera.pos.x, camera.pos.z) / M_PI * 180;
 		double camt = atan(camera.pos.y / sqrt(camera.pos.z*camera.pos.z + camera.pos.x*camera.pos.x)) / M_PI * 180;
@@ -57,7 +71,7 @@ void Planet::updateDetail(Camera &camera)
 		baked.p1 = camp + delta;
 		baked.t0 = camt - delta;
 		baked.t1 = camt + delta;
-		baked.bake();
+		baked.bake();*/
 	}
 	
 	//If the camera moved or rotated a minute amount, update the culling of the terrain.
@@ -75,6 +89,6 @@ void Planet::draw()
 	/*for (int t = 0; t < 18; t++)
 		for (int p = 0; p < 36; p++)
 			chunks[p][t].draw();*/
-	baked.tex_type.bind();
+	//bakedChunks[0][0].tex_type.bind();
 	rootChunk.draw();
 }
