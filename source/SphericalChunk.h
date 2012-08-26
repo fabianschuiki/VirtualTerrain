@@ -40,8 +40,9 @@ public:
 	int level;
 	bool highlighted;
 	
-	bool culled;
+	bool culled_frustum, culled_angle;
 	AABox boundingBox;
+	double minDot, maxDot;
 	
 	SphericalChunk();
 	~SphericalChunk();

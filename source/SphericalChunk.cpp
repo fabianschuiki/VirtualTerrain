@@ -37,7 +37,7 @@ SphericalChunk::SphericalChunk()
 	parent = NULL;
 	level = 0;
 	highlighted = false;
-	culled = false;
+	culled_frustum = culled_angle = false;
 }
 
 SphericalChunk::~SphericalChunk()
@@ -99,7 +99,7 @@ void SphericalChunk::init()
 
 void SphericalChunk::draw()
 {
-	if (culled) return;
+	if (culled_frustum || culled_angle) return;
 	
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
@@ -184,7 +184,7 @@ void SphericalChunk::draw()
 
 void SphericalChunk::updateDetail(Camera &camera)
 {
-	if (culled) return;
+	if (culled_angle || culled_frustum) return;
 	
 	//Perform the LOD decision for every child.
 	for (int i = 0; i < 4; i++)
@@ -231,18 +231,44 @@ void SphericalChunk::updateCulling(Camera &camera)
 {
 	//Check whether our bounding box is inside the frustum.
 	Frustum &f = camera.frustum;
-	culled = (level > MIN_LEVEL && f.contains(boundingBox) == Frustum::kOutside);
-	if (!culled && level > MIN_LEVEL) {
-		for (int i = 0; i < 4; i++) {
-			double d = (camera.pos - corners[i].position*0.9).dot(corners[i].position); //since no normalization is performed, only the sign of d has a meaning.
-			if (d < 0) culled = true;
-		}
-	}
+	culled_frustum = (level > MIN_LEVEL && f.contains(boundingBox) == Frustum::kOutside);
 	
-	//If we're not culled, perform the calculation on our children as well.
-	for (int i = 0; i < 4; i++)
-		if (children[i])
-			children[i]->updateCulling(camera);
+	//Perform the culling on our children as well.
+	if (!culled_frustum) {
+		for (int i = 0; i < 4; i++)
+			if (children[i])
+				children[i]->updateCulling(camera);
+		
+		//Calculate the min and max dot product.
+		minDot = 1;
+		maxDot = -1;
+		
+		for (int i = 0; i < 4; i++) {
+			vec3 dir = camera.pos - corners[i].position*0.9;
+			dir.normalize();
+			double dot1 = dir.dot(corners[i].unit);
+			
+			dir = camera.pos - corners[i].position;
+			dir.normalize();
+			double dot2 = dir.dot(corners[i].normal);
+			
+			double dot = std::max(dot1, dot2);
+			
+			if (dot < minDot) minDot = dot;
+			if (dot > maxDot) maxDot = dot;
+		}
+		
+		for (int i = 0; i < 4; i++) {
+			if (!children[i]) continue;
+			double cmin = children[i]->minDot;
+			double cmax = children[i]->maxDot;
+			if (cmin < minDot) minDot = cmin;
+			if (cmax > maxDot) maxDot = cmax;
+		}
+		
+		//Check whether there's any chance of us facing towards the camera.
+		culled_angle = (level > MIN_LEVEL && maxDot < 0);
+	}
 }
 
 

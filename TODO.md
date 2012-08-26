@@ -3,8 +3,6 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- In the `SphericalChunk::updateDetail` function, calculate the range of dot products between the surface normals of the children and the camera direction. Chunks that don't have any children use their four corner unit vectors for the dot product calculation; chunks that have children use the overall min/max of all their children. This allows chunks with a maximum dot product < 0 to be culled. This will avoid the problems with patches of the surface disappearing, since as long as there is some portion of the terrain facing the camera, the chunk is rendered.
-
 - Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
 
 - Terrain tends to have too few details. This might be due to the recursive nature of `deactivateChild()` which has a potentially large area of effect. One approach would be to only deactivate children if the adjacent node exists and has the same amount of children.
