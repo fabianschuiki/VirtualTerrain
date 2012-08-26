@@ -19,6 +19,7 @@ public:
 	int resolution;
 	
 	Texture tex_type; //terrain type
+	Texture tex_normal; //terrain normal
 	
 	void bake();
 };

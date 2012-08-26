@@ -10,7 +10,7 @@
 #include "SphericalChunk.h"
 
 #define MIN_LEVEL 3
-#define TAU 1
+#define TAU 2
 #define HYSTERESIS 0.5
 
 
@@ -22,8 +22,9 @@ inline static void glVertex_vec3(vec3 &v) { glVertex3f(v.x, v.y, v.z); }
 inline static void glNormal_vec3(vec3 &v) { glNormal3f(v.x, v.y, v.z); }
 inline static void drawVertex(SphericalChunk::Vertex &v)
 {
-	glNormal_vec3(v.normal);
-	glTexCoord2f(v.tex_s, v.tex_t);
+	glNormal_vec3(v.unit);
+	glColor3f((v.tangent.x + 1) / 2, (v.tangent.y + 1) / 2, (v.tangent.z + 1) / 2);
+	glTexCoord2d(v.tex_s, v.tex_t);
 	glVertex_vec3(v.position);
 }
 
@@ -39,6 +40,7 @@ SphericalChunk::SphericalChunk()
 	level = 0;
 	highlighted = false;
 	culled_frustum = culled_angle = false;
+	baked = NULL;
 }
 
 SphericalChunk::~SphericalChunk()
@@ -46,6 +48,7 @@ SphericalChunk::~SphericalChunk()
 	for (int i = 0; i < 4; i++) {
 		if (children[i]) delete children[i];
 	}
+	if (baked) delete baked;
 }
 
 
@@ -103,18 +106,20 @@ void SphericalChunk::draw()
 {
 	if (culled_frustum || culled_angle) return;
 	
-	//Select the appropriate baked texture.
-	int btx = floor(pc / 30 + 6);
-	int bty = floor(tc / 30 + 3);
-	BakedScenery &baked = planet->bakedChunks[btx][bty];
-	baked.tex_type.bind();
-	
-	//Update the vertice's texture coordinates.
-	for (int i = 0; i < 4; i++) {
-		updateVertexTexture(corners[i], baked);
-		updateVertexTexture(sides[i], baked);
+	if (baked) {
+		glActiveTexture(GL_TEXTURE0);
+		baked->tex_type.bind();
+		glActiveTexture(GL_TEXTURE1);
+		baked->tex_normal.bind();
+		glActiveTexture(GL_TEXTURE0);
+		
+		//Update the vertice's texture coordinates.
+		for (int i = 0; i < 4; i++) {
+			updateVertexTexture(corners[i], *baked);
+			updateVertexTexture(sides[i], *baked);
+		}
+		updateVertexTexture(center, *baked);
 	}
-	updateVertexTexture(center, baked);
 	
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
@@ -216,6 +221,7 @@ void SphericalChunk::draw()
 void SphericalChunk::updateDetail(Camera &camera)
 {
 	if (culled_angle || culled_frustum) return;
+	updateCulling(camera);
 	
 	//Check whether we cover different types of terrain.
 	bool differentTypes = false;
@@ -248,7 +254,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 		vec3 ci = (corners[i].position + center.position) / 2;
 		
 		//Calculate the error in world space.
-		double err_world = (ca-ci).length();
+		double err_world = /*(ca-ci).length()*/ (t1-t0) / 180 * M_PI * planet->radius / 25;
 		
 		//Calculate the error in screen space.
 		double D = (ci - camera.pos).length();
@@ -281,6 +287,47 @@ void SphericalChunk::updateDetail(Camera &camera)
 	for (int i = 0; i < 4; i++)
 		if (children[i] && level < 24)
 			children[i]->updateDetail(camera);
+}
+
+void SphericalChunk::updateBakedScenery(Camera &camera)
+{
+	//Bake the scenery if required.
+	bool bakeScenery = level < 24 && !culled_frustum && !culled_angle && (!children[0] || !children[1] || !children[2] || !children[3]);
+	if (!bakeScenery && baked) {
+		std::cout << "destroying baked scenery" << std::endl;
+		delete baked;
+		baked = NULL;
+	}
+	if (bakeScenery && !baked) {
+		std::cout << "creating baked scenery" << std::endl;
+		baked = new BakedScenery;
+		baked->planet = planet;
+		baked->p0 = p0;
+		baked->p1 = p1;
+		baked->t0 = t0;
+		baked->t1 = t1;
+		baked->resolution = 0;
+	}
+	if (bakeScenery && baked) {
+		int prev_res = baked->resolution;
+		double D = (center.position - camera.pos).length();
+		//D *= 1 + 1e-6*D;
+		double section = (t1-t0) / 180 * M_PI * planet->radius;
+		double side = section / D * camera.K;
+		int res = pow(2, floor(log2(side))) / 4;
+		if (res < 1) res = 1;
+		if (res > 128) res = 128;
+		if (res != prev_res) {
+			std::cout << "baking at " << res << ", side = " << side << ", section = " << section << std::endl;
+			baked->resolution = res;
+			baked->bake();
+		}
+	}
+	
+	//Bake the children's scenery.
+	for (int i = 0; i < 4; i++)
+		if (children[i])
+			children[i]->updateBakedScenery(camera);
 }
 
 void SphericalChunk::updateCulling(Camera &camera)
@@ -490,10 +537,10 @@ void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
 	double t = (t0 + y*(t1-t0));
 	v.p = p;
 	v.t = t;
-	v.radius = planet->elevation->getElevation(p, t) + planet->radius;
+	v.radius = std::max(0.0, planet->elevation->getElevation(p, t)) + planet->radius;
 	v.position = v.unit * v.radius;
 	
-	vec3 n = planet->elevation->getNormal(p, t, planet->radius);
+	vec3 n = planet->elevation->getNormal(p, t, planet->radius, 0.01);
 	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;
 }
 

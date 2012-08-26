@@ -49,6 +49,7 @@ public:
 	double minDot, maxDot;
 	
 	double minp, mint, maxp, maxt;
+	BakedScenery *baked;
 	
 	ElevationProvider::Type terrainType;
 	
@@ -59,6 +60,7 @@ public:
 	void draw();
 	void updateDetail(Camera &camera);
 	void updateCulling(Camera &camera);
+	void updateBakedScenery(Camera &camera);
 	
 	vec3 getVertex(float x, float y);
 	vec3 getNormal(float x, float y);

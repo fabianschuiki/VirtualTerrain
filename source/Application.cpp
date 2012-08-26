@@ -356,7 +356,8 @@ int Application::run(int argc, char* argv[])
 		
 		glEnable(GL_TEXTURE_2D);
 		normalsShader.use();
-		glUniform1i(normalsShader.uniform("tex"), 0);
+		glUniform1i(normalsShader.uniform("tex_color"), 0);
+		glUniform1i(normalsShader.uniform("tex_normals"), 1);
 		glUniform3f(normalsShader.uniform("lightPos"), light.x, light.y, light.z);
 		
 		//Draw the planet.

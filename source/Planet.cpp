@@ -20,7 +20,7 @@ Planet::Planet() : radius(6.371e6)
 	rootChunk.t1 = 90;
 	rootChunk.init();
 	
-	//Initialize the baked scenery chunks.
+	/*//Initialize the baked scenery chunks.
 	for (int y = -3; y < 3; y++) {
 		for (int x = -6; x < 6; x++) {
 			BakedScenery &b = bakedChunks[x+6][y+3];
@@ -32,7 +32,7 @@ Planet::Planet() : radius(6.371e6)
 			b.resolution = 256;
 			b.bake();
 		}
-	}
+	}*/
 	
 	/*//Initialize some basic form of baked scenery.
 	baked.planet = this;
@@ -79,6 +79,7 @@ void Planet::updateDetail(Camera &camera)
 		camera_pos_culling = camera.pos;
 		camera_at = camera.at;
 		rootChunk.updateCulling(camera);
+		rootChunk.updateBakedScenery(camera);
 		
 		/*std::cout << "visible [" << rootChunk.minp << "," << rootChunk.maxp << "] x [" << rootChunk.mint << "," << rootChunk.maxt << "]" << std::endl;*/
 	}
