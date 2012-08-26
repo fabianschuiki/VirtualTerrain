@@ -9,8 +9,8 @@
 
 double PerlinElevation::getElevation(double x, double y)
 {
-	const static int octaves = 10;
-	const static double persistence = 0.75;
+	const static int octaves = 16;
+	const static double persistence = 0.65;
 	
 	double nx = x / 180;
 	double ny = y / 180;
@@ -18,7 +18,7 @@ double PerlinElevation::getElevation(double x, double y)
 	double r = 0;
 	double n = 0;
 	for (int i = 0; i < octaves; i++) {
-		double frequency = (1 << i) * 4;
+		double frequency = (1 << i) * 8;
 		double amplitude = pow(persistence, i);
 		
 		n += amplitude;
@@ -26,7 +26,7 @@ double PerlinElevation::getElevation(double x, double y)
 	}
 	
 	//if (r < 0) r = 0;
-	return r * 8e3;
+	return (r*r*2 - 0.2) * 8e3;
 }
 
 vec3 PerlinElevation::getNormal(double x, double y, double r, double detail)

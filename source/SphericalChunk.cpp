@@ -10,7 +10,7 @@
 #include "SphericalChunk.h"
 
 #define MIN_LEVEL 3
-#define TAU 2
+#define TAU 1
 #define HYSTERESIS 0.5
 
 
@@ -106,19 +106,24 @@ void SphericalChunk::draw()
 {
 	if (culled_frustum || culled_angle) return;
 	
-	if (baked) {
+	SphericalChunk *c = this;
+	BakedScenery *usedBaking = NULL;
+	while (c && !c->baked) c = c->parent;
+	if (c) usedBaking = c->baked;
+	
+	if (usedBaking) {
 		glActiveTexture(GL_TEXTURE0);
-		baked->tex_type.bind();
+		usedBaking->tex_type.bind();
 		glActiveTexture(GL_TEXTURE1);
-		baked->tex_normal.bind();
+		usedBaking->tex_normal.bind();
 		glActiveTexture(GL_TEXTURE0);
 		
 		//Update the vertice's texture coordinates.
 		for (int i = 0; i < 4; i++) {
-			updateVertexTexture(corners[i], *baked);
-			updateVertexTexture(sides[i], *baked);
+			updateVertexTexture(corners[i], *usedBaking);
+			updateVertexTexture(sides[i], *usedBaking);
 		}
-		updateVertexTexture(center, *baked);
+		updateVertexTexture(center, *usedBaking);
 	}
 	
 	//If not all quadrants are handled by children draw the chunk.
@@ -254,7 +259,9 @@ void SphericalChunk::updateDetail(Camera &camera)
 		vec3 ci = (corners[i].position + center.position) / 2;
 		
 		//Calculate the error in world space.
-		double err_world = /*(ca-ci).length()*/ (t1-t0) / 180 * M_PI * planet->radius / 50;
+		double err_world = (ca-ci).length();
+		err_world = std::min(err_world, (t1-t0) / 180 * M_PI * planet->radius / 5 / TAU);
+		err_world = std::max(err_world, (t1-t0) / 180 * M_PI * planet->radius / 50 / TAU);
 		
 		//Calculate the error in screen space.
 		double D = (ci - camera.pos).length();
@@ -291,8 +298,20 @@ void SphericalChunk::updateDetail(Camera &camera)
 
 void SphericalChunk::updateBakedScenery(Camera &camera)
 {
+	double D = (center.position - camera.pos).length();
+	double section = (t1-t0) / 180 * M_PI * planet->radius;
+	double side = section / D * camera.K;
+	double dot = std::max(0.0, (camera.pos - center.position).unit().dot(center.normal));
+	dot = dot / 2 + 0.5;
+	if (level <= MIN_LEVEL) dot = 1;
+	int res = pow(2, floor(log2(side * dot)));
+	
 	//Bake the scenery if required.
-	bool bakeScenery = level < 24 && !culled_frustum && !culled_angle && (!children[0] || !children[1] || !children[2] || !children[3]);
+	bool bakeScenery = (level < 24 && !culled_frustum && !culled_angle);
+	if (bakeScenery)
+		bakeScenery = (level % 4 == 0) && (res >= (baked ? 64 : 256) || level == 0);
+	res = 256;
+	
 	if (!bakeScenery && baked) {
 		std::cout << "destroying baked scenery" << std::endl;
 		delete baked;
@@ -309,16 +328,7 @@ void SphericalChunk::updateBakedScenery(Camera &camera)
 		baked->resolution = 0;
 	}
 	if (bakeScenery && baked) {
-		int prev_res = baked->resolution;
-		double D = (center.position - camera.pos).length();
-		//D *= 1 + 1e-6*D;
-		double section = (t1-t0) / 180 * M_PI * planet->radius;
-		double side = section / D * camera.K;
-		double dot = std::max(0.1, (camera.pos - center.position).unit().dot(center.normal));
-		int res = pow(2, floor(log2(side * dot)));
-		if (res < 8) res = 8;
-		if (res > 128) res = 128;
-		if (res != prev_res) {
+		if (res != baked->resolution) {
 			std::cout << "baking at " << res << ", side = " << side << ", section = " << section << std::endl;
 			baked->resolution = res;
 			baked->bake();
@@ -378,7 +388,7 @@ void SphericalChunk::updateCulling(Camera &camera)
 
 vec3 SphericalChunk::getVertex(float x, float y)
 {
-	return getNormal(x, y) * (planet->radius + planet->elevation->getElevation(p0 + (p1-p0)*x, t0 + (t1-t0)*y));
+	return getNormal(x, y) * (planet->radius + std::max(0.0, planet->elevation->getElevation(p0 + (p1-p0)*x, t0 + (t1-t0)*y)));
 }
 
 vec3 SphericalChunk::getNormal(float x, float y)
