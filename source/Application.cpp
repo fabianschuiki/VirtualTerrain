@@ -134,7 +134,7 @@ int Application::run(int argc, char* argv[])
 	for (int y = 0; y < 180*eh; y++) {
 		std::cout << "rendering elevation... " << (y * 100 / 180 / eh) << "%" << std::endl;
 		for (int x = 0; x < 360*ew; x++) {
-			double e = planet.elevation->getElevation(x / ew - 180, y / eh - 90) / 8e4;
+			double e = planet.elevation->getElevation(x / ew - 180, y / eh - 90) / 8e3;
 			vec3 n = planet.elevation->getNormal(x / ew - 180, y / eh - 90, planet.radius);
 			
 			sf::Color c;

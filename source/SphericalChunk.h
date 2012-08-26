@@ -23,10 +23,12 @@ public:
 	float pc, tc;
 	
 	struct Vertex {
+		double p,t;
 		vec3 unit;
 		vec3 tangent;
 		vec3 normal;
 		vec3 position;
+		double tex_s, tex_t;
 		double radius;
 	};
 	Vertex corners[4];
@@ -44,6 +46,8 @@ public:
 	bool culled_frustum, culled_angle;
 	AABox boundingBox;
 	double minDot, maxDot;
+	
+	double minp, mint, maxp, maxt;
 	
 	ElevationProvider::Type terrainType;
 	
@@ -66,4 +70,5 @@ public:
 	
 private:
 	void updateVertexNormalAndRadius(Vertex &v, double x, double y);
+	void updateVertexTexture(Vertex &v);
 };

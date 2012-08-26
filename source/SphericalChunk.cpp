@@ -10,7 +10,7 @@
 #include "SphericalChunk.h"
 
 #define MIN_LEVEL 3
-#define TAU 2
+#define TAU 1
 #define HYSTERESIS 0.5
 
 
@@ -23,6 +23,7 @@ inline static void glNormal_vec3(vec3 &v) { glNormal3f(v.x, v.y, v.z); }
 inline static void drawVertex(SphericalChunk::Vertex &v)
 {
 	glNormal_vec3(v.normal);
+	glTexCoord2f(v.tex_s, v.tex_t);
 	glVertex_vec3(v.position);
 }
 
@@ -102,6 +103,13 @@ void SphericalChunk::draw()
 {
 	if (culled_frustum || culled_angle) return;
 	
+	//Update the vertice's texture coordinates.
+	for (int i = 0; i < 4; i++) {
+		updateVertexTexture(corners[i]);
+		updateVertexTexture(sides[i]);
+	}
+	updateVertexTexture(center);
+	
 	//If not all quadrants are handled by children draw the chunk.
 	if (!children[0] || !children[1] || !children[2] || !children[3]) {
 		bool hl = false;
@@ -137,10 +145,21 @@ void SphericalChunk::draw()
 				case 5: glColor3f(V,p,q); break;
 			}*/
 			
-			switch (terrainType) {
+			/*switch (terrainType) {
 				case ElevationProvider::kOcean: glColor3f(0, 0.25, 0.5); break;
 				case ElevationProvider::kLand:  glColor3f(0, 0.5, 0); break;
-			}
+			}*/
+			BakedScenery &b = planet->baked;
+			/*if (pc >= b.p0 && pc <= b.p1 && tc >= b.t0 && tc <= b.t1) {
+				glColor3f(0, 1, 0);
+			} else {
+				glColor3f(1,1,1);
+			}*/
+			/*if (maxDot > 0.9)
+				glColor3f(1,1,1);
+			else
+			 glColor3f(0.2,0.2,0.2);*/
+			glColor3f(1,1,1);
 		}
 		glBegin(GL_TRIANGLE_FAN);
 		
@@ -275,7 +294,7 @@ void SphericalChunk::updateCulling(Camera &camera)
 		maxDot = -1;
 		
 		for (int i = 0; i < 4; i++) {
-			vec3 dir = camera.pos - corners[i].position*0.9;
+			vec3 dir = camera.pos - corners[i].position;
 			dir.normalize();
 			double dot1 = dir.dot(corners[i].unit);
 			
@@ -463,9 +482,27 @@ void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
 {
 	double p = (p0 + x*(p1-p0));
 	double t = (t0 + y*(t1-t0));
+	v.p = p;
+	v.t = t;
 	v.radius = planet->elevation->getElevation(p, t) + planet->radius;
 	v.position = v.unit * v.radius;
 	
 	vec3 n = planet->elevation->getNormal(p, t, planet->radius);
 	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;
+}
+
+void SphericalChunk::updateVertexTexture(Vertex &v)
+{
+	BakedScenery &baked = planet->baked;
+	
+	double s = (v.p - baked.p0) / (baked.p1 - baked.p0);
+	double t = (v.t - baked.t0) / (baked.t1 - baked.t0);
+	
+	if (s < 0) s = 0;
+	if (t < 0) t = 0;
+	if (s > 1) s = 1;
+	if (t > 1) t = 1;
+	
+	v.tex_s = s;
+	v.tex_t = t;
 }

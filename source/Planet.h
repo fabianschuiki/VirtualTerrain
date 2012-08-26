@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BakedScenery.h"
 #include "Camera.h"
 #include "SphericalChunk.h"
 
@@ -17,6 +18,7 @@ public:
 	vec3 camera_pos_detail, camera_pos_culling, camera_at;
 	SphericalChunk rootChunk;
 	ElevationProvider *elevation;
+	BakedScenery baked;
 	
 	Planet();
 	~Planet();

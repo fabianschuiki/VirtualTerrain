@@ -26,7 +26,7 @@ double PerlinElevation::getElevation(double x, double y)
 	}
 	
 	//if (r < 0) r = 0;
-	return std::max(r,0.0) * 8e4;
+	return std::max(r,0.0) * 8e3;
 }
 
 vec3 PerlinElevation::getNormal(double x, double y, double r)
