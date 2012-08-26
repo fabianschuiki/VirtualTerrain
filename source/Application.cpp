@@ -126,7 +126,7 @@ int Application::run(int argc, char* argv[])
 	//std::cout << "elevation at " << centerx << "x" << centery << ": " << eds.sample(centerx, centery) << std::endl;
 	
 	//Dump the elevation data.
-	double ew = 2;
+	/*double ew = 2;
 	double eh = 2;
 	sf::Image elev, elev_norm;
 	elev.create(360*ew, 180*eh, sf::Color::Black);
@@ -161,7 +161,7 @@ int Application::run(int argc, char* argv[])
 		}
 	}
 	elev.saveToFile("elevation.png");
-	elev_norm.saveToFile("elevation_normals.png");
+	elev_norm.saveToFile("elevation_normals.png");*/
 	
 	//Main loop.
 	GLUquadric* quadric = gluNewQuadric();

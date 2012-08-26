@@ -3,8 +3,6 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Separate terrain LOD and frustum culling. Frustum culling needs to be updated whenever the camera moves/rotates. LOD only needs to be updated if the camera moves a certain amount.
-
 - In the `SphericalChunk::updateDetail` function, calculate the range of dot products between the surface normals of the children and the camera direction. Chunks that don't have any children use their four corner unit vectors for the dot product calculation; chunks that have children use the overall min/max of all their children. This allows chunks with a maximum dot product < 0 to be culled. This will avoid the problems with patches of the surface disappearing, since as long as there is some portion of the terrain facing the camera, the chunk is rendered.
 
 - Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
@@ -54,6 +52,8 @@ An ordered list of things that need to be accomplished:
 - Stream and cache OpenStreetMap data to display roads, cities and forests.
 
 - Add ground detail, like rocks, grass and fields. Anno 2070 uses some kind of vertex shader and Perlin noise to wiggle the trees in a wave-like motion to simulate slight winds.
+
+- Calculate terrain self-shadowing. One approach would be to cast a ray from each vertex to the camera and check whether it hits the terrain, which would mean that the area is not hit by the sun. Maybe the shadow mapping for objects is good enough also for the terrain?
 
 
 Future Stuff

@@ -14,7 +14,7 @@ class Planet
 {
 public:
 	const double radius;
-	vec3 camera_pos;
+	vec3 camera_pos_detail, camera_pos_culling, camera_at;
 	SphericalChunk rootChunk;
 	ElevationProvider *elevation;
 	

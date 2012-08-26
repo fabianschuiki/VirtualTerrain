@@ -49,6 +49,7 @@ public:
 	void init();
 	void draw();
 	void updateDetail(Camera &camera);
+	void updateCulling(Camera &camera);
 	
 	vec3 getVertex(float x, float y);
 	vec3 getNormal(float x, float y);

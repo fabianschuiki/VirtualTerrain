@@ -184,15 +184,6 @@ void SphericalChunk::draw()
 
 void SphericalChunk::updateDetail(Camera &camera)
 {
-	//Check whether our bounding box is inside the frustum.
-	Frustum &f = camera.frustum;
-	culled = (level > MIN_LEVEL && f.contains(boundingBox) == Frustum::kOutside);
-	if (!culled && level > MIN_LEVEL) {
-		for (int i = 0; i < 4; i++) {
-			double d = (camera.pos - corners[i].position*0.9).dot(corners[i].position); //since no normalization is performed, only the sign of d has a meaning.
-			if (d < 0) culled = true;
-		}
-	}
 	if (culled) return;
 	
 	//Perform the LOD decision for every child.
@@ -234,6 +225,24 @@ void SphericalChunk::updateDetail(Camera &camera)
 	for (int i = 0; i < 4; i++)
 		if (children[i] && level < 24)
 			children[i]->updateDetail(camera);
+}
+
+void SphericalChunk::updateCulling(Camera &camera)
+{
+	//Check whether our bounding box is inside the frustum.
+	Frustum &f = camera.frustum;
+	culled = (level > MIN_LEVEL && f.contains(boundingBox) == Frustum::kOutside);
+	if (!culled && level > MIN_LEVEL) {
+		for (int i = 0; i < 4; i++) {
+			double d = (camera.pos - corners[i].position*0.9).dot(corners[i].position); //since no normalization is performed, only the sign of d has a meaning.
+			if (d < 0) culled = true;
+		}
+	}
+	
+	//If we're not culled, perform the calculation on our children as well.
+	for (int i = 0; i < 4; i++)
+		if (children[i])
+			children[i]->updateCulling(camera);
 }
 
 
