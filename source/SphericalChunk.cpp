@@ -57,8 +57,7 @@ void SphericalChunk::init()
 	//Calculate the phi and theta of the center point.
 	pc = (p0+p1)/2;
 	tc = (t0+t1)/2;
-	standaloneDetail = std::min((p1-p0)/2, (t1-t0)/2);
-	detail = standaloneDetail;
+	detail = std::min((p1-p0)/2, (t1-t0)/2);
 	
 	//Calculate the spherical unit vectors for each point.
 	for (int i = 0; i < 4; i++) {
@@ -297,16 +296,6 @@ void SphericalChunk::updateDetail(Camera &camera)
 		}
 	}
 	
-	//Update the chunk's detail level to match the highest detail available.
-	if (!parent) updateDetailLevel();
-	
-	//Update the vertex locations since their elevation might change if new elevation data was loaded.
-	for (int i = 0; i < 4; i++) {
-		updateVertexNormalAndRadius(corners[i]);
-		updateVertexNormalAndRadius(sides[i]);
-	}
-	updateVertexNormalAndRadius(center);
-	
 	//Calculate the pixel level which is a measure of how many pixels are covered by one side of the vertex.
 	double D = (center.position - camera.pos).length();
 	pixelLevel = 1e6 / D;
@@ -315,6 +304,13 @@ void SphericalChunk::updateDetail(Camera &camera)
 	for (int i = 0; i < 4; i++)
 		if (children[i] && level < 24)
 			children[i]->updateDetail(camera);
+	
+	//Update the vertex locations since their elevation might change if new elevation data was loaded.
+	for (int i = 0; i < 4; i++) {
+		updateVertexNormalAndRadius(corners[i]);
+		updateVertexNormalAndRadius(sides[i]);
+	}
+	updateVertexNormalAndRadius(center);
 }
 
 void SphericalChunk::updateBakedScenery(Camera &camera)
@@ -404,20 +400,6 @@ void SphericalChunk::updateCulling(Camera &camera)
 		//Check whether there's any chance of us facing towards the camera.
 		culled_angle = (level > MIN_LEVEL && maxDot < 0);
 	}
-}
-
-void SphericalChunk::updateDetailLevel()
-{
-	double d = standaloneDetail;
-	for (int i = 0; i < 4; i++) {
-		SphericalChunk *child = children[i];
-		if (child) {
-			child->updateDetailLevel();
-			if (child->detail < d) d = child->detail;
-		}
-	}
-	if (d < detail) std::cout << "detail level increased (standalone " << standaloneDetail << ", actual " << d << ")" << std::endl;
-	detail = d;
 }
 
 

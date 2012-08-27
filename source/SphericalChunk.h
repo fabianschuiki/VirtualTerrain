@@ -20,8 +20,7 @@ public:
 	
 	float p0, p1; //rotation phi (0 = Greenwich)
 	float t0, t1; //inclination theta (0 = equator)
-	double standaloneDetail; //what angular resolution this chunk is able to provide
-	double detail; //same as above, but considering child chunks
+	double detail; //what angular resolution this chunk is able to provide
 	
 	float pc, tc;
 	

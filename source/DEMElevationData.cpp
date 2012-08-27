@@ -15,7 +15,7 @@ using std::ifstream;
 using std::ofstream;
 
 
-#define NUM_RES 8
+#define NUM_RES 5
 
 
 DEMElevationData::DEMElevationData()
@@ -255,8 +255,8 @@ DEMElevationData::Resolution* DEMElevationData::chooseResolution(double detail)
 	//Mark a hit at this resolution.
 	resolutions[res].hits++;
 	
-	//Find the closest resolution that has data available.
-	for (int i = res; i >= 0; i--)
+	//Find the highest resolution that has data available.
+	for (int i = 0; i <= res; i++)
 		if (resolutions[i].heights)
 			return &resolutions[i];
 	

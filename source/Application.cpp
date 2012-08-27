@@ -38,7 +38,7 @@ static void glaux_fullQuad()
 	glEnd();
 }
 
-static void glVertex_vec3(const vec3 &v)
+/*static void glVertex_vec3(const vec3 &v)
 {
 	glVertex3f(v.x, v.y, v.z);
 }
@@ -46,7 +46,7 @@ static void glVertex_vec3(const vec3 &v)
 static void glNormal_vec3(const vec3 &n)
 {
 	glNormal3f(n.x, n.y, n.z);
-}
+}*/
 
 
 int Application::run(int argc, char* argv[])
