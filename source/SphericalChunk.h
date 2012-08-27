@@ -20,7 +20,8 @@ public:
 	
 	float p0, p1; //rotation phi (0 = Greenwich)
 	float t0, t1; //inclination theta (0 = equator)
-	double detail; //what angular resolution this chunk is able to provide
+	double standaloneDetail; //what angular resolution this chunk is able to provide
+	double detail; //same as above, but considering child chunks
 	
 	float pc, tc;
 	
@@ -62,6 +63,7 @@ public:
 	void updateDetail(Camera &camera);
 	void updateCulling(Camera &camera);
 	void updateBakedScenery(Camera &camera);
+	void updateDetailLevel();
 	
 	//vec3 getVertex(float x, float y);
 	vec3 getNormal(float x, float y);

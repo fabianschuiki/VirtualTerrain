@@ -57,7 +57,8 @@ void SphericalChunk::init()
 	//Calculate the phi and theta of the center point.
 	pc = (p0+p1)/2;
 	tc = (t0+t1)/2;
-	detail = std::min((p1-p0)/2, (t1-t0)/2);
+	standaloneDetail = std::min((p1-p0)/2, (t1-t0)/2);
+	detail = standaloneDetail;
 	
 	//Calculate the spherical unit vectors for each point.
 	for (int i = 0; i < 4; i++) {
@@ -232,13 +233,6 @@ void SphericalChunk::updateDetail(Camera &camera)
 	if (culled_angle || culled_frustum) return;
 	updateCulling(camera);
 	
-	//Update the vertex locations since their elevation might change if new elevation data was loaded.
-	for (int i = 0; i < 4; i++) {
-		updateVertexNormalAndRadius(corners[i]);
-		updateVertexNormalAndRadius(sides[i]);
-	}
-	updateVertexNormalAndRadius(center);
-	
 	//Check whether we cover different types of terrain.
 	bool differentTypes = false;
 	for (int i = 0; i < 4; i++) {
@@ -253,10 +247,10 @@ void SphericalChunk::updateDetail(Camera &camera)
 	//If we cover different types of terrain, check whether the coastline detail is good enough.
 	bool increaseCoastline = false;
 	if (differentTypes) {
-		double distance2 = (center.position - camera.pos).length2();
+		/*double distance2 = (center.position - camera.pos).length2();
 		double section = (t1-t0) / 180 * M_PI * planet->radius;
 		double section2 = section*section;
-		double pixels2 = section2 / distance2 * camera.K * camera.K;
+		double pixels2 = section2 / distance2 * camera.K * camera.K;*/
 		
 		//Require a certain amount of coastline detail.
 		//increaseCoastline = (pixels2 > 10);
@@ -302,6 +296,16 @@ void SphericalChunk::updateDetail(Camera &camera)
 				deactivateChild(i);
 		}
 	}
+	
+	//Update the chunk's detail level to match the highest detail available.
+	if (!parent) updateDetailLevel();
+	
+	//Update the vertex locations since their elevation might change if new elevation data was loaded.
+	for (int i = 0; i < 4; i++) {
+		updateVertexNormalAndRadius(corners[i]);
+		updateVertexNormalAndRadius(sides[i]);
+	}
+	updateVertexNormalAndRadius(center);
 	
 	//Calculate the pixel level which is a measure of how many pixels are covered by one side of the vertex.
 	double D = (center.position - camera.pos).length();
@@ -402,11 +406,20 @@ void SphericalChunk::updateCulling(Camera &camera)
 	}
 }
 
-
-/*vec3 SphericalChunk::getVertex(float x, float y)
+void SphericalChunk::updateDetailLevel()
 {
-	return getNormal(x, y) * (planet->radius + std::max(0.0, planet->elevation->getElevation(p0 + (p1-p0)*x, t0 + (t1-t0)*y)));
-}*/
+	double d = standaloneDetail;
+	for (int i = 0; i < 4; i++) {
+		SphericalChunk *child = children[i];
+		if (child) {
+			child->updateDetailLevel();
+			if (child->detail < d) d = child->detail;
+		}
+	}
+	if (d < detail) std::cout << "detail level increased (standalone " << standaloneDetail << ", actual " << d << ")" << std::endl;
+	detail = d;
+}
+
 
 vec3 SphericalChunk::getNormal(float x, float y)
 {
