@@ -159,9 +159,9 @@ void DEMElevationData::load(int resolution)
 				int xp = std::min(x+1, (int)r.w - 1);
 				int yp = std::min(y+1, (int)r.h - 1);
 				
-				short h0 = r.heights[y * r.w + x];
-				short hx = r.heights[y * r.w + xp];
-				short hy = r.heights[yp * r.w + x];
+				short h0 = r.heights[yp * r.w + x]; //note that yp and y have to be flip since the elevation data extends from top to bottom
+				short hx = r.heights[yp * r.w + xp];
+				short hy = r.heights[y  * r.w + x];
 				
 				char *n = &r.normals[(y * r.w + x) * 2];
 				double nx = sy * (h0 - hx);
