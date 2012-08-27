@@ -69,12 +69,15 @@ void SphericalChunk::init()
 		corners[i].tangent = getTangentPhi(cx,cy);
 		sides[i].unit = getNormal(sx,sy);
 		sides[i].tangent = getTangentPhi(sx,sy);
-		updateVertexNormalAndRadius(corners[i], cx, cy);
-		updateVertexNormalAndRadius(sides[i], sx, sy);
+		updateVertexPhiTheta(corners[i], cx, cy);
+		updateVertexPhiTheta(sides[i], sx, sy);
+		updateVertexNormalAndRadius(corners[i]);
+		updateVertexNormalAndRadius(sides[i]);
 	}
 	center.unit = getNormal(0.5, 0.5);
 	center.tangent = getTangentPhi(0.5, 0.5);
-	updateVertexNormalAndRadius(center, 0.5, 0.5);
+	updateVertexPhiTheta(center, 0.5, 0.5);
+	updateVertexNormalAndRadius(center);
 	terrainType = planet->elevation->getType(pc,tc, detail);
 	
 	//Calculate the bounding box of the chunk.
@@ -229,6 +232,13 @@ void SphericalChunk::updateDetail(Camera &camera)
 	if (culled_angle || culled_frustum) return;
 	updateCulling(camera);
 	
+	//Update the vertex locations since their elevation might change if new elevation data was loaded.
+	for (int i = 0; i < 4; i++) {
+		updateVertexNormalAndRadius(corners[i]);
+		updateVertexNormalAndRadius(sides[i]);
+	}
+	updateVertexNormalAndRadius(center);
+	
 	//Check whether we cover different types of terrain.
 	bool differentTypes = false;
 	for (int i = 0; i < 4; i++) {
@@ -260,7 +270,8 @@ void SphericalChunk::updateDetail(Camera &camera)
 		double cx = (corner_coeffs[i].x + 0.5) / 2;
 		double cy = (corner_coeffs[i].y + 0.5) / 2;
 		v.unit = getNormal(cx,cy);
-		updateVertexNormalAndRadius(v, cx, cy);
+		updateVertexPhiTheta(v, cx, cy);
+		updateVertexNormalAndRadius(v);
 		vec3 ca = v.position;
 		vec3 ci = (corners[i].position + center.position) / 2;
 		
@@ -546,21 +557,26 @@ SphericalChunk* SphericalChunk::findAdjacentChunk(int side, bool create)
 }
 
 
+/** Updates the given vertex's p and t coordinate, based on the given faction x,y of the chunk's
+ * coordinates. */
+void SphericalChunk::updateVertexPhiTheta(Vertex &v, double x, double y)
+{
+	v.p = (p0 + x*(p1-p0));
+	v.t = (t0 + y*(t1-t0));
+}
+
 /** Updates the given vertex's radius, normal and position based on the data of the planet's ele-
  * vation provider. */
-void SphericalChunk::updateVertexNormalAndRadius(Vertex &v, double x, double y)
+void SphericalChunk::updateVertexNormalAndRadius(Vertex &v)
 {
-	double p = (p0 + x*(p1-p0));
-	double t = (t0 + y*(t1-t0));
-	v.p = p;
-	v.t = t;
-	v.radius = std::max(0.0, planet->elevation->getElevation(p,t, detail)) + planet->radius;
+	v.radius = std::max(0.0, planet->elevation->getElevation(v.p,v.t, detail)) + planet->radius;
 	v.position = v.unit * v.radius;
 	
-	/*vec3 n = planet->elevation->getNormal(p, t, planet->radius, 0.01);
+	/*vec3 n = planet->elevation->getNormal(v.p, v.t, planet->radius, detail);
 	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;*/
 }
 
+/** Updates the given vertex's texture coordinates to correctly map the given baked scenery. */
 void SphericalChunk::updateVertexTexture(Vertex &v, BakedScenery &baked)
 {
 	double s = (v.p - baked.p0) / (baked.p1 - baked.p0);

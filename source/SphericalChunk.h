@@ -73,6 +73,7 @@ public:
 	SphericalChunk* findAdjacentChunk(int side, bool create = true);
 	
 private:
-	void updateVertexNormalAndRadius(Vertex &v, double x, double y);
+	void updateVertexPhiTheta(Vertex &v, double x, double y);
+	void updateVertexNormalAndRadius(Vertex &v);
 	void updateVertexTexture(Vertex &v, BakedScenery &baked);
 };
