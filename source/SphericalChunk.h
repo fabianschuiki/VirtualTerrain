@@ -53,6 +53,7 @@ public:
 	BakedScenery *baked;
 	
 	ElevationProvider::Type terrainType;
+	bool ocean;
 	
 	SphericalChunk();
 	~SphericalChunk();

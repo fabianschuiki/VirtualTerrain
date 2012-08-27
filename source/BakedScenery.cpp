@@ -17,8 +17,15 @@ void BakedScenery::bake()
 	assert(planet);
 	std::cout << "baking scenery [" << p0 << "," << p1 << "] x [" << t0 << "," << t1 << "] at " << detail << std::endl;
 	
+	GLubyte *pix_color = new GLubyte[resolution*resolution*3];
 	GLubyte *pix_type = new GLubyte[resolution*resolution*3];
 	GLubyte *pix_normal = new GLubyte[resolution*resolution*3];
+	
+	int cw = planet->color.getSize().x;
+	int ch = planet->color.getSize().y;
+	double fcx = cw / 360.0;
+	double fcy = ch / 180.0;
+	const sf::Uint8 *cpix = planet->color.getPixelsPtr();
 	
 	for (int y = 0; y < resolution; y++) {
 		for (int x = 0; x < resolution; x++) {
@@ -38,6 +45,15 @@ void BakedScenery::bake()
 				pix_type[k+2] = 0;
 			}*/
 			
+			
+			int cx = (int)(( p + 180) * fcx) % cw;
+			int cy = (int)((-t +  90) * fcy) % ch;
+			int kc = (cy * cw + cx) * 4;
+			pix_color[k+0] = cpix[kc+0];
+			pix_color[k+1] = cpix[kc+1];
+			pix_color[k+2] = cpix[kc+2];
+			
+			
 			double e = planet->elevation->getElevation(p,t, detail);
 			if (e <= 0) {
 				pix_type[k+0] = 0;
@@ -49,9 +65,6 @@ void BakedScenery::bake()
 					pix_type[k+1] = 255;
 					pix_type[k+2] = 255;
 				} else {
-					/*pix_type[k+0] = 1 / (1 + e/100) * 255;
-					pix_type[k+1] = (1.0 - e / 8e3 / 2) * 255;
-					 pix_type[k+2] = 0;*/
 					pix_type[k+0] = 0;
 					pix_type[k+1] = (0.7 + 0.3 / (1 + e/100)) * 255;
 					pix_type[k+2] = 0;
@@ -65,8 +78,11 @@ void BakedScenery::bake()
 		}
 	}
 	
+	tex_color.loadImage(resolution, resolution, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, pix_color);
 	tex_type.loadImage(resolution, resolution, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, pix_type);
 	tex_normal.loadImage(resolution, resolution, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, pix_normal);
 	
+	delete pix_color;
 	delete pix_type;
+	delete pix_normal;
 }

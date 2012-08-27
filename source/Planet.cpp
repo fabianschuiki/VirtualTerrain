@@ -42,6 +42,11 @@ Planet::Planet() : radius(6.371e6)
 	baked.t0 = -50;
 	baked.t1 = 50;
 	baked.bake();*/
+	
+	//Load the planet color image.
+	std::cout << "loading planet color texture... ";
+	color.loadFromFile("/usr/local/share/VirtualTerrain/color.jpg");
+	std::cout << "done" << std::endl;
 }
 
 Planet::~Planet()

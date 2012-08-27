@@ -42,6 +42,7 @@ SphericalChunk::SphericalChunk()
 	highlighted = false;
 	culled_frustum = culled_angle = false;
 	baked = NULL;
+	ocean = false;
 }
 
 SphericalChunk::~SphericalChunk()
@@ -118,7 +119,7 @@ void SphericalChunk::draw()
 	
 	if (usedBaking) {
 		glActiveTexture(GL_TEXTURE0);
-		usedBaking->tex_type.bind();
+		usedBaking->tex_color.bind();
 		glActiveTexture(GL_TEXTURE1);
 		usedBaking->tex_normal.bind();
 		glActiveTexture(GL_TEXTURE0);
@@ -132,7 +133,7 @@ void SphericalChunk::draw()
 	}
 	
 	//If not all quadrants are handled by children draw the chunk.
-	if (!children[0] || !children[1] || !children[2] || !children[3]) {
+	if ((!children[0] || !children[1] || !children[2] || !children[3])/* && !ocean*/) {
 		bool hl = false;
 		/*for (SphericalChunk *c = this; c; c = c->parent) {
 			if (c->highlighted) {
@@ -243,6 +244,7 @@ void SphericalChunk::updateDetail(Camera &camera)
 			break;
 		}
 	}
+	ocean = (differentTypes == false && terrainType == ElevationProvider::kOcean);
 	
 	//If we cover different types of terrain, check whether the coastline detail is good enough.
 	bool increaseCoastline = false;
@@ -250,10 +252,11 @@ void SphericalChunk::updateDetail(Camera &camera)
 		/*double distance2 = (center.position - camera.pos).length2();
 		double section = (t1-t0) / 180 * M_PI * planet->radius;
 		double section2 = section*section;
-		double pixels2 = section2 / distance2 * camera.K * camera.K;*/
+		double pixels2 = section2 / distance2 * camera.K * camera.K;
 		
 		//Require a certain amount of coastline detail.
-		//increaseCoastline = (pixels2 > 10);
+		static const double err = 10;
+		increaseCoastline = (pixels2 > err*err);*/
 	}
 	
 	//Perform the LOD decision for every child.
@@ -327,7 +330,7 @@ void SphericalChunk::updateBakedScenery(Camera &camera)
 	//Bake the scenery if required.
 	bool bakeScenery = (level < MAX_BAKING_LEVEL && !culled_frustum && !culled_angle);
 	if (bakeScenery)
-		bakeScenery = (level % 2 == 0) && (res >= (baked ? 128 : 256) || level == 0);
+		bakeScenery = (level % 2 == 0) && (res >= (baked ? 64 : 128) || level == 0);
 	res = 256;
 	
 	if (!bakeScenery && baked) {

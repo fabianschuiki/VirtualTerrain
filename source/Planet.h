@@ -7,6 +7,7 @@
 #include "BakedScenery.h"
 #include "Camera.h"
 #include "SphericalChunk.h"
+#include <SFML/Graphics/Image.hpp>
 
 class ElevationProvider;
 
@@ -19,6 +20,7 @@ public:
 	SphericalChunk rootChunk;
 	ElevationProvider *elevation;
 	BakedScenery bakedChunks[12][6];
+	sf::Image color;
 	
 	Planet();
 	~Planet();

@@ -3,19 +3,13 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- Load Blue Marble image from NASA to colorize earth from space. This will need another caching mechanism, since the whole texture is rather big (raw ~10GB). Maybe chunk the image into ~50MB pieces, e.g. 10x10 degrees at different resolutions.
+- Use some chunking and caching to render the planet color at different resolutions.
 
 - Make scenery baking have a resolution for each axis. Use dot product to reduce quality of bakings.
 
-- Update PerlinElevation to create terrain that is toroidal, i.e. repeats in x and y directions. Maybe use 3D perlin noise? Or some mapping onto 2D noise?
-
-- Terrain tends to have too few details. This might be due to the recursive nature of `deactivateChild()` which has a potentially large area of effect. One approach would be to only deactivate children if the adjacent node exists and has the same amount of children.
+- I'm not sure whether the terrain detail destruction works properly. Seems like it takes a long time for a child to get deactivated.
 
 - Alter the `SphericalChunk::draw()` to selectively draw only chunks that are within a certain LOD range, or are ocean/land. This allows the use of different shaders, materials and textures for each.
-
-- Create a class that renders a certain range of the ElevationProvider data to a texture at various resolutions. This includes normals, color (from some source), and various attributes (specular intensity, etc.). This produces multiple textures which have to be stored in a separate structure, e.g. `BakedElevation` or `BakedScenery`, which also keeps track what range the textures cover. Don't recalculate the textures too often.
-
-- Use the baked elevation data to cover the terrain. Create one texture that covers all visible chunks as the least detailed resolution. Then use a maximum pixel error or the like to decide which range of the terrain to cover in a more detailed texture. Maybe even consider a dynamic number of textures. Use the coordinates stored within the baked texture to calculate texture coordinates, so it is possible to not update the texture every frame, but rather slowly.
 
 - Compile the spherical chunks into VBOs, i.e. multiple VBOs for different LODs and ocean/land. This probably requires a new class that holds the compiled VBOs, or the `Planet` class could handle that. Having separated LODs and terrain type allows the ocean to be rendered with an ocean shader and the landmasses with differently detailed textures.
 
@@ -70,6 +64,8 @@ Resources
 ---------
 
 - [http://www.naturalearth.com]
+- [http://visibleearth.nasa.gov/view_cat.php?categoryID=1484] and [http://visibleearth.nasa.gov/view.php?id=74117]
+- [http://earthobservatory.nasa.gov/Features/BlueMarble/BlueMarble_monthlies.php]
 
 
 Potential Issues

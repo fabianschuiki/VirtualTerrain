@@ -70,8 +70,5 @@ DEMElevationData* DEMElevation::getSlice(double x, double y)
 	int ix = (x + 180) / 40;
 	int iy = (y +  60) / 50;
 	
-	if (ix >= 9) ix -= 9;
-	if (iy >= 3) iy -= 3;
-	
-	return &slices[ix][iy];
+	return &slices[ix % 9][iy];
 }

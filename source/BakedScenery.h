@@ -18,6 +18,7 @@ public:
 	double t0, t1;
 	int resolution;
 	
+	Texture tex_color; //terrain color
 	Texture tex_type; //terrain type
 	Texture tex_normal; //terrain normal
 	
