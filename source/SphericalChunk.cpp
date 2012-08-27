@@ -10,8 +10,9 @@
 #include "SphericalChunk.h"
 
 #define MIN_LEVEL 3
+#define MAX_BAKING_LEVEL 8
 #define TAU 1
-#define HYSTERESIS 0.5
+#define HYSTERESIS 0.1
 
 
 static const struct { double x; double y; } corner_coeffs[4] = {{1,1}, {0,1}, {0,0}, {1,0}};
@@ -324,7 +325,7 @@ void SphericalChunk::updateBakedScenery(Camera &camera)
 	int res = pow(2, floor(log2(side * dot)));
 	
 	//Bake the scenery if required.
-	bool bakeScenery = (level < 24 && !culled_frustum && !culled_angle);
+	bool bakeScenery = (level < MAX_BAKING_LEVEL && !culled_frustum && !culled_angle);
 	if (bakeScenery)
 		bakeScenery = (level % 2 == 0) && (res >= (baked ? 128 : 256) || level == 0);
 	res = 256;
@@ -375,13 +376,13 @@ void SphericalChunk::updateCulling(Camera &camera)
 		maxDot = -1;
 		
 		for (int i = 0; i < 4; i++) {
-			vec3 dir = camera.pos - corners[i].position;
+			vec3 dir = camera.pos - /*corners[i].position*/corners[i].unit * planet->radius;
 			dir.normalize();
 			double dot1 = dir.dot(corners[i].unit);
 			
 			dir = camera.pos - corners[i].position;
 			dir.normalize();
-			double dot2 = dir.dot(corners[i].unit/*normal*/);
+			double dot2 = dir.dot(corners[i].normal);
 			
 			double dot = std::max(dot1, dot2);
 			
@@ -567,8 +568,8 @@ void SphericalChunk::updateVertexNormalAndRadius(Vertex &v)
 	v.radius = std::max(0.0, planet->elevation->getElevation(v.p,v.t, detail)) + planet->radius;
 	v.position = v.unit * v.radius;
 	
-	/*vec3 n = planet->elevation->getNormal(v.p, v.t, planet->radius, detail);
-	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;*/
+	vec3 n = planet->elevation->getNormal(v.p, v.t, detail);
+	v.normal = v.tangent*n.x + v.unit*n.y + v.unit.cross(v.tangent)*n.z;
 }
 
 /** Updates the given vertex's texture coordinates to correctly map the given baked scenery. */

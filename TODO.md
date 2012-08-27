@@ -3,8 +3,6 @@ VirtualTerrain TODO
 
 An ordered list of things that need to be accomplished:
 
-- When moving in between hills, the hill tops start to get culled. This is probably due to the angular culling. Change the angular culling to use the sphere radius minus the point's elevation as position or something alike. Or just use the sphere radius minus 10'000m so stuff does not get culled.
-
 - Load Blue Marble image from NASA to colorize earth from space. This will need another caching mechanism, since the whole texture is rather big (raw ~10GB). Maybe chunk the image into ~50MB pieces, e.g. 10x10 degrees at different resolutions.
 
 - Make scenery baking have a resolution for each axis. Use dot product to reduce quality of bakings.
