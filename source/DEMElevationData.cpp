@@ -57,7 +57,7 @@ void DEMElevationData::load(int resolution)
 			 (iy < 0 ? 'S' : 'N'), abs(iy));
 	
 	//Create the cache directory if required.
-	const char *cache_dir = "/tmp/VirtualTerrain";
+	const char *cache_dir = "cache";
 	mkdir(cache_dir, 0777);
 	
 	//Create the cache directory for these resolutions if required.
@@ -68,7 +68,7 @@ void DEMElevationData::load(int resolution)
 	//Decide where to grab the data from.
 	char path[512];
 	if (resolution > 0) {
-		snprintf(path, 512, "%s/%s", resolution_dir, filename);
+		snprintf(path, 512, "%s/heights_%s", resolution_dir, filename);
 	} else {
 		snprintf(path, 512, "/usr/local/share/VirtualTerrain/%s", filename);
 	}
@@ -100,12 +100,12 @@ void DEMElevationData::load(int resolution)
 	
 	//Downsample the higher resolution cache.
 	else if (resolution > 0) {
-		std::cout << "rendering DEM cache {" << x << "," << y << "} at " << resolution << std::endl;
-		
 		//First make sure that the higher resolution cache is loaded.
 		Resolution &higher = resolutions[resolution - 1];
 		if (!higher.heights)
 			load(resolution - 1);
+		
+		std::cout << "rendering DEM cache {" << x << "," << y << "} at " << resolution << std::endl;
 		
 		//Downsample the original image.
 		//TODO: do some interpolation here!
